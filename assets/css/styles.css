@@ -1,0 +1,297 @@
+:root {
+    --main-color: rgb(0, 234, 255);
+}
+
+@font-face {
+    font-family: HeadUpDaisy;
+    src: url('../fonts/x14y24pxHeadUpDaisy.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'MaruMonica';
+    src: url('../fonts/x12y16pxMaruMonica.ttf') format('truetype');
+}
+
+
+
+body {
+    background-color: black;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: "HeadUpDaisy", "MaruMonica";
+    color: var(--main-color);
+}
+
+#searchbox {
+    width: 40%;
+    height: 30px;
+    padding: 5px;
+    border: solid 3px var(--main-color);
+    border-radius: 200px;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    padding-left: 20px;
+    padding-right: 20px;
+    font-size: 20px;
+    top: 70px;
+    color: var(--main-color);
+    background-color: rgba(0, 0, 0, 0.5);
+    font-family: "HeadUpDaisy";
+}
+
+#clockbox {
+    font-size: 43px;
+    color: var(--main-color);
+    text-align: center;
+    border: solid 3px var(--main-color);
+    width: 200px;
+    height: 70px;
+    position: absolute;
+    top: 40px;
+    left: 80px;
+    padding: 20px;
+    font-variant-numeric: tabular-nums;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+#date {
+    font-size: 25px;
+}
+
+#battery-box {
+    position: absolute;
+    border: solid 3px var(--main-color);
+    left: 80px;
+    top: 180px;
+    height:42px;
+    width: 165px;
+    padding: 10px;
+    font-size: 20px;
+}
+
+#battery-bg {
+    position: absolute;
+    width: 106px;
+    height: 36px;
+    top: 10px;
+    left: 60px;
+    border: solid 3px var(--main-color);
+}
+
+#battery-cover {
+    position: absolute;
+    width: 5px;
+    height: 18px;
+    top: 21px;
+    left: 174px;
+    background-color: var(--main-color);
+}
+
+#battery-indicator {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 100px;
+    height: 30px;
+    background: linear-gradient(to right, var(--main-color)50%, rgba(0, 0, 0, 0) 50%);
+}
+
+#shortcut-box {
+    position: absolute;
+    top: 135px;
+
+    /* レイアウトの肝 */
+    display: flex;
+    /* 横並びにする */
+    align-items: center;
+    /* 上下中央揃え */
+    gap: 10px;
+    /* アイコン同士の間隔（ここでお好みの余白に！） */
+    padding: 5px 10px;
+    /* ボックス内側の余白 (上下 左右) */
+
+    background-color: rgba(0, 0, 0, 0.5);
+    border: solid 3px var(--main-color);
+}
+
+.shortcut-icon {
+    /* サイズと枠線（今の設定を維持） */
+    height: 55px;
+    width: 55px;
+    border: solid 1px var(--main-color);
+    background: none;
+    color: var(--main-color);
+
+    background-color: rgba(255, 255, 255, 0.3);
+    text-decoration: none;
+    /* 下線を消す */
+    display: flex;
+    /* Flexboxを有効にする */
+    justify-content: center;
+    /* 左右中央 */
+    align-items: center;
+    /* 上下中央 */
+
+    font-size: 14px;
+    /* 文字サイズ（お好みで） */
+    transition: 0.2s;
+    flex-direction: column;
+}
+
+/* おまけ：マウスを乗せた時の反応 */
+.shortcut-icon:hover {
+    color: white;
+}
+
+/* 色選択のあれこれ */
+
+#color-picker-box {
+    position: absolute;
+    top: 280px;
+    left: 80px;
+    border: solid 3px var(--main-color);
+    padding: 5px;
+    font-size: 20px;
+}
+
+/* タイムテーブルのスタイル */
+
+#timetable-box {
+    position: absolute;
+    width: 600px;
+    height: 290px;
+    top: 230px;
+    /* 検索ボックスの下に配置 */
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.5);
+    border: solid 4px var(--main-color);
+    padding: 15px;
+    color: var(--main-color);
+    animation: fadeIn 0.5s ease-in-out forwards;
+}
+
+table {
+    border-collapse: collapse;
+    text-align: center;
+}
+
+th {
+    font-size: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--main-color);
+}
+
+td {
+    border: 1px solid rgba(0, 255, 149, 0.3);
+    /* 枠線は少し薄めに */
+    width: 100px;
+    height: 30px;
+    padding: 5px;
+    vertical-align: middle;
+}
+
+/* 時間表示列（1〜5） */
+.period-num {
+    width: 35px;
+    font-size: 25px;
+    border: none;
+    border-right: 2px solid var(--main-color);
+    font-weight: bold;
+}
+
+/* 入力エリアのスタイル */
+.cell-content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.subject-input,
+.room-input {
+    background: transparent;
+    border: none;
+    color: var(--main-color);
+    font-family: inherit;
+    text-align: center;
+    width: 100%;
+}
+
+.subject-input {
+    font-size: 13px;
+    height: 60%;
+}
+
+.room-input {
+    font-size: 18px;
+    height: 40%;
+    opacity: 0.8;
+}
+
+.subject-input:focus,
+.room-input:focus {
+    outline: none;
+    background: rgba(0, 255, 149, 0.1);
+}
+
+#timetable-actions {
+    position: absolute;
+    justify-content: flex-end;
+    gap: 10px;
+    top: 290px;
+}
+
+#export-btn,
+#import-btn {
+    background: transparent;
+    border: 1px solid var(--main-color);
+    color: var(--main-color);
+    font-family: inherit;
+    font-size: 14px;
+    padding: 2px 10px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+#export-btn:hover,
+#import-btn:hover {
+    background: var(--main-color);
+    color: black;
+}
+
+#background {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100vw;
+    /* 画面横,0幅いっぱい */
+    height: 100vh;
+    /* 画面縦幅いっぱい */
+    object-fit: cover;
+    /* 1920x1080を画面に合わせて綺麗に切り抜く */
+    z-index: -1;
+    /* 他の要素より後ろに配置 */
+}
+#setup-ui{
+    position: absolute;
+}
+
+#version-info {
+    position: absolute;
+    color: white;
+    bottom: 3px;
+    left: 3px;
+    font-size: 15px;
+}
+
+#update-status {
+    position: absolute;
+    color: white;
+    bottom: 18px;
+    left: 3px;
+    font-size: 15px;
+}
