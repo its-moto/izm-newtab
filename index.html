@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>新しいタブ</title>
+    <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+
+<body>
+    <canvas id="background"></canvas>
+
+    <input type="text" id="searchbox" placeholder="Google 検索...">
+
+    <div id="clockbox">
+        <div id="clock">00:00:00</div>
+        <div id="date">2026/01/01 (木)</div>
+    </div>
+
+    <div id="battery-box">
+        <div id="level">取得中...</div>
+        <div id="status">状態を確認中...</div>
+        <div id="battery-bg">
+            <div id="battery-indicator"></div>
+        </div>
+        <div id="battery-cover"></div>
+    </div>
+
+    <div id="color-picker-box">
+        <label for="color-picker">テーマカラー:</label>
+        <input type="color" id="color-picker" value="#00eaff">
+    </div>
+
+    <div id="bg-opacity-control">
+        <label for="bg-opacity">背景の不透明度:<span id="valDisplay">0.5</span></label><br>
+        <input type="range" id="bg-opacity" min="0" max="1" step="0.1" value="0.5">
+    </div>
+
+    <div id="shortcut-box">
+        <a href="https://www.kochi-tech.ac.jp/" class="shortcut-icon">
+            <img src="https://www.google.com/s2/favicons?sz=32&domain=www.kochi-tech.ac.jp/" alt="">
+            <span> 大学HP </span>
+        </a>
+        <a href="https://portal.kochi-tech.ac.jp/Portal/" class="shortcut-icon">
+            <img src="https://www.google.com/s2/favicons?sz=32&domain=portal.kochi-tech.ac.jp/Portal/" alt="">
+            <span>Portal</span>
+
+        </a>
+        <a href="https://webmail.kochi-tech.ac.jp/rc/" class="shortcut-icon">
+            <img src="https://www.google.com/s2/favicons?sz=32&domain=https://webmail.kochi-tech.ac.jp/rc/" alt="">
+            <span>RCmail</span>
+        </a>
+        <a href="https://lms.kochi-tech.ac.jp/my/courses.php" class="shortcut-icon">
+            <img src="https://www.google.com/s2/favicons?sz=32&domain=lms.kochi-tech.ac.jp" alt="">
+            <span>KUTLMS</span>
+
+        </a>    
+        <a href="https://github.com" class="shortcut-icon">
+            <img src="https://www.google.com/s2/favicons?sz=32&domain=github.com" alt="">
+            <span>GitHub</span>
+        </a>
+        <a href="https://discord.com/channels/@me" class="shortcut-icon">
+            <img src="https://www.google.com/s2/favicons?sz=32&domain=discord.com/" alt="">
+            <span>Discord</span>
+        </a>
+        <a href="https://gemini.google.com/app" class="shortcut-icon">
+            <img src="https://www.google.com/s2/favicons?sz=32&domain=gemini.google.com/" alt="">
+            <span>Gemini</span>
+        </a>
+    </div>
+
+    <div id="weather-box">
+        <div id="city-name" style="font-size: 14px; font-weight: bold; margin-bottom: 5px;">取得中...</div>
+
+        <div class="weather-main" style="display: flex; align-items: center; gap: 10px;">
+            <div id="main-icon" style="font-size: 40px;">--</div>
+            <div>
+                <div style="font-size: 24px; font-weight: bold;"><span id="main-temp">--</span>°C</div>
+                <div id="main-desc" style="font-size: 14px; opacity: 0.8;">読み込み中...</div>
+            </div>
+        </div>
+
+        <div class="forecast-section" style="margin-top: 15px;">
+            <h3 style="font-size: 12px; margin-bottom: 8px; border-bottom: 1px solid rgba(0,234,255,0.3);">3時間ごとの予報</h3>
+            <div id="forecast-list" style="display: flex; overflow-x: auto; gap: 10px; padding-bottom: 5px;">
+            </div>
+        </div>
+    </div>
+
+    <div id="timetable-box">
+        <table>
+            <thead>
+                <tr>
+                    <th></th>
+                    <th>月</th>
+                    <th>火</th>
+                    <th>水</th>
+                    <th>木</th>
+                    <th>金</th>
+                    <th>土</th>
+                </tr>
+            </thead>
+            <tbody id="timetable-body">
+            </tbody>
+        </table>
+        <div id="timetable-actions">
+            <button id="export-btn">EXPORT</button>
+            <button id="import-btn">IMPORT</button>
+            <input type="file" id="import-file" style="display:none" accept=".json">
+        </div>
+    </div>
+
+    <video id="bg-video" loop muted playsinline style="display:none;"></video>
+    <div id="setup-ui">
+        <input type="file" id="video-selector" accept="video/*" hidden>
+        <label for="video-selector" class="custom-file-button" id="video-selector-txt">
+            動画を選択
+        </label>
+    </div>
+
+    <div id="version-info">Version 1.1</div>
+    <div id="update-status"></div>
+
+    <script src="assets/script/script.js"></script>
+    <script src="assets/script/timetable.js"></script>
+    <script src="assets/script/bg.js"></script>
+    <script src="assets/script/battery.js"></script>
+    <script src="assets/script/color.js"></script>
+    <script src="assets/script/versions.js"></script>
+    <script src="assets/script/weather.js"></script>
+</body>
+
+</html>
