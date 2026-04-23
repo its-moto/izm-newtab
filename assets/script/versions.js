@@ -1,5 +1,5 @@
 async function checkUpdate() {
-  const currentVersion = chrome.runtime?.getManifest?.()?.version || "1.0.0";
+  const currentVersion = chrome.runtime?.getManifest?.()?.version || "1.1";
   const githubUrl = 'https://raw.githubusercontent.com/its-moto/izm-newtab/main/version.json';
 
   try {
@@ -21,9 +21,12 @@ async function checkUpdate() {
   }
 }
 
-let colorint = 0;
+let colorint = Math.floor(Math.random() * 360);
+let colorIncrement = 1;
+if(Math.random() < 0.2) colorIncrement = 20;
+
 function updateColor() {
-  colorint += 1;
+  colorint += colorIncrement;
   document.getElementById('update-status').style.color = `hsl(${colorint % 360}, 100%, 50%)`;
   requestAnimationFrame(updateColor);
 }

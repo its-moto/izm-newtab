@@ -16,7 +16,10 @@
 
 body {
     background-color: black;
-    display: flex;
+    height: auto;
+    min-height: 100vh;
+    width: 100vh;
+    margin-bottom: 100px;
     flex-direction: column;
     align-items: center;
     justify-content: center;
@@ -39,7 +42,7 @@ body {
     top: 70px;
     color: var(--main-color);
     background-color: rgba(0, 0, 0, 0.5);
-    font-family: "HeadUpDaisy";
+    font-family: inherit;
 }
 
 #clockbox {
@@ -61,12 +64,15 @@ body {
     font-size: 25px;
 }
 
+/* バッテリー表示のスタイル */
+
 #battery-box {
     position: absolute;
     border: solid 3px var(--main-color);
+    background-color: rgba(0, 0, 0, 0.5);
     left: 80px;
     top: 180px;
-    height:42px;
+    height: 42px;
     width: 165px;
     padding: 10px;
     font-size: 20px;
@@ -99,9 +105,13 @@ body {
     background: linear-gradient(to right, var(--main-color)50%, rgba(0, 0, 0, 0) 50%);
 }
 
+/* ショートカットアイコンのスタイル */
+
 #shortcut-box {
     position: absolute;
     top: 135px;
+    left: 50%;
+    transform: translate(-50%,0);
 
     /* レイアウトの肝 */
     display: flex;
@@ -125,7 +135,7 @@ body {
     background: none;
     color: var(--main-color);
 
-    background-color: rgba(255, 255, 255, 0.3);
+    background-color: rgba(255, 255, 255, 0.1);
     text-decoration: none;
     /* 下線を消す */
     display: flex;
@@ -153,8 +163,20 @@ body {
     top: 280px;
     left: 80px;
     border: solid 3px var(--main-color);
+    background-color: rgba(0, 0, 0, 0.5);
     padding: 5px;
     font-size: 20px;
+}
+
+
+#bg-opacity-control {
+    position: absolute;
+    top: 350px;
+    left: 80px;
+    border: solid 3px var(--main-color);
+    background-color: rgba(0, 0, 0, 0.5);
+    padding: 5px;
+    font-size: 18px;
 }
 
 /* タイムテーブルのスタイル */
@@ -168,7 +190,7 @@ body {
     left: 50%;
     transform: translateX(-50%);
     background-color: rgba(0, 0, 0, 0.5);
-    border: solid 4px var(--main-color);
+    border: solid 3px var(--main-color);
     padding: 15px;
     color: var(--main-color);
     animation: fadeIn 0.5s ease-in-out forwards;
@@ -276,12 +298,31 @@ td {
     z-index: -1;
     /* 他の要素より後ろに配置 */
 }
-#setup-ui{
+
+#setup-ui {
     position: absolute;
+    top: 40px;
+    right: 80px;
+    width: 70px;
+    height: 25px;
+    border: solid 3px var(--main-color);
+    background-color: rgba(0, 0, 0, 0.5);
+    padding: 10px;
+    font-family: inherit;
+}
+
+#video-selector-txt {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    white-space: nowrap;
+    cursor: pointer;
+    align-items: center;
 }
 
 #version-info {
-    position: absolute;
+    position: fixed;
     color: white;
     bottom: 3px;
     left: 3px;
@@ -289,9 +330,38 @@ td {
 }
 
 #update-status {
-    position: absolute;
+    position: fixed;
     color: white;
     bottom: 18px;
     left: 3px;
     font-size: 15px;
+}
+
+#weather-box{
+    position: absolute;
+    top: 600px;
+    left: 50%;
+    transform: translate(-50%,0);
+    width: 600px;
+    padding : 15px;
+    background-color: rgba(0, 0, 0, 0.5);
+    border: solid 3px var(--main-color);
+}
+#forecast-list {
+    display: flex;
+    overflow-x: auto;
+    white-space: nowrap;
+    scrollbar-width: none; /* Firefox用 */
+}
+
+#forecast-list::-webkit-scrollbar {
+    display: none; /* Chrome, Safari用 */
+}
+
+/* 予報の各アイテムのスタイル */
+.hour-item {
+    flex: 0 0 auto; /* 幅を固定して潰れないようにする */
+    padding: 5px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.05);
 }
