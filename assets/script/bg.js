@@ -81,11 +81,29 @@ function draw() {
     }
     
     // 4. 全体のオーバーレイ（もし常に少し暗くしたいなら）
-    ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
+    ctx.fillStyle = `rgba(0, 0, 0, ${sliderValue})`;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     requestAnimationFrame(draw);
 }
+
+// 1. 値を保持するための変数
+let sliderValue = 0.5;
+
+const slider = document.getElementById('bg-opacity');
+const display = document.getElementById('valDisplay');
+
+// 2. 入力イベントを監視
+slider.addEventListener('input', (e) => {
+    // 文字列として取得されるため、数値型(Number)に変換して代入
+    sliderValue = Number(e.target.value);
+
+    // 3. 画面上の表示も更新（確認用）
+    display.textContent = sliderValue;
+
+    // ここで他の関数を呼ぶなど、変数を使った処理を行えます
+    console.log("変数の値が更新されました:", sliderValue);
+});
 
 const saveCurrentTime = () => {
     if (!video.paused && db) {
