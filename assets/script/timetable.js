@@ -5,7 +5,7 @@ const tbody = document.getElementById('timetable-body');
 // 1. テーブルの生成
 for (let i = 1; i <= periods; i++) {
     const row = document.createElement('tr');
-    
+
     // 何限目かを表示する列
     const numCell = document.createElement('td');
     numCell.className = 'period-num';
@@ -15,8 +15,9 @@ for (let i = 1; i <= periods; i++) {
     // 月〜土のセルを作成
     days.forEach(day => {
         const td = document.createElement('td');
+        td.dataset.day = day;
         const idBase = `${day}-${i}`;
-        
+
         td.innerHTML = `
             <div class="cell-content">
                 <input type="text" id="sub-${idBase}" class="subject-input" placeholder="...">
@@ -77,14 +78,14 @@ importFile.addEventListener('change', (e) => {
     reader.onload = (event) => {
         try {
             const data = JSON.parse(event.target.result);
-            
+
             // 既存のデータを上書き
             Object.keys(data).forEach(key => {
                 if (key.startsWith('sub-') || key.startsWith('room-')) {
                     localStorage.setItem(key, data[key]);
                 }
             });
-            
+
             alert('時間割をインポートしました！');
             location.reload(); // 画面を更新して反映
         } catch (err) {
@@ -93,3 +94,21 @@ importFile.addEventListener('change', (e) => {
     };
     reader.readAsText(file);
 });
+
+// --- 今日の曜日の列をハイライト ---
+function highlightToday() {
+    // getDay(): 0=日, 1=月 ... 6=土 → days配列は月始まりなので -1（日曜は -1 で該当なし）
+    const todayKey = days[new Date().getDay() - 1];
+    const headers = document.querySelectorAll('#timetable-box thead th');
+
+    headers.forEach((th, i) => {
+        // 先頭の空白列(i=0)を除き、days[i-1]と比較
+        th.classList.toggle('today', i > 0 && days[i - 1] === todayKey);
+    });
+    document.querySelectorAll('#timetable-body td[data-day]').forEach(td => {
+        td.classList.toggle('today', td.dataset.day === todayKey);
+    });
+}
+
+highlightToday();
+setInterval(highlightToday, 60000); // 日付をまたいだら切り替わる

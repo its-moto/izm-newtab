@@ -1,5 +1,5 @@
 async function checkUpdate() {
-  const currentVersion = chrome.runtime?.getManifest?.()?.version || "1.1";
+  const currentVersion = chrome.runtime?.getManifest?.()?.version || "1.1.1";
   const githubUrl = 'https://raw.githubusercontent.com/its-moto/izm-newtab/main/version.json';
 
   try {
@@ -10,7 +10,7 @@ async function checkUpdate() {
       // HTML要素にメッセージを表示
       const statusDiv = document.getElementById('update-status');
       statusDiv.innerHTML = `
-          <a href="https://github.com/its-moto/izm-newtab" target="_blank" style="text-decoration: none; color: inherit;">
+          <a href="https://github.com/its-moto/izm-newtab/releases" target="_blank" style="text-decoration: none; color: inherit;">
           新しいバージョン (${data.version}) があります！<br>
           GitHubから最新版を取得してください</a>
       `;

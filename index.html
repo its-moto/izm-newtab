@@ -37,38 +37,7 @@
         <input type="range" id="bg-opacity" min="0" max="1" step="0.1" value="0.5">
     </div>
 
-    <div id="shortcut-box">
-        <a href="https://www.kochi-tech.ac.jp/" class="shortcut-icon">
-            <img src="https://www.google.com/s2/favicons?sz=32&domain=www.kochi-tech.ac.jp/" alt="">
-            <span> 大学HP </span>
-        </a>
-        <a href="https://portal.kochi-tech.ac.jp/Portal/" class="shortcut-icon">
-            <img src="https://www.google.com/s2/favicons?sz=32&domain=portal.kochi-tech.ac.jp/Portal/" alt="">
-            <span>Portal</span>
-
-        </a>
-        <a href="https://webmail.kochi-tech.ac.jp/rc/" class="shortcut-icon">
-            <img src="https://www.google.com/s2/favicons?sz=32&domain=https://webmail.kochi-tech.ac.jp/rc/" alt="">
-            <span>RCmail</span>
-        </a>
-        <a href="https://lms.kochi-tech.ac.jp/my/courses.php" class="shortcut-icon">
-            <img src="https://www.google.com/s2/favicons?sz=32&domain=lms.kochi-tech.ac.jp" alt="">
-            <span>KUTLMS</span>
-
-        </a>
-        <a href="https://github.com" class="shortcut-icon">
-            <img src="https://www.google.com/s2/favicons?sz=32&domain=github.com" alt="">
-            <span>GitHub</span>
-        </a>
-        <a href="https://discord.com/channels/@me" class="shortcut-icon">
-            <img src="https://www.google.com/s2/favicons?sz=32&domain=discord.com/" alt="">
-            <span>Discord</span>
-        </a>
-        <a href="https://gemini.google.com/app" class="shortcut-icon">
-            <img src="https://www.google.com/s2/favicons?sz=32&domain=gemini.google.com/" alt="">
-            <span>Gemini</span>
-        </a>
-    </div>
+    <div id="shortcut-box"></div>
 
     <div id="weather-box">
         <div id="city-name" style="font-size: 14px; font-weight: bold; margin-bottom: 5px;">取得中...</div>
@@ -111,17 +80,31 @@
         </div>
     </div>
 
+    <div id="calc-box" tabindex="0">
+        <div id="calc-history"></div>
+        <div id="calc-display">0</div>
+        <div id="calc-keys"></div>
+    </div>
+
     <video id="bg-video" loop muted playsinline style="display:none;"></video>
     <div id="setup-ui">
-        <input type="file" id="video-selector" accept="video/*" hidden>
+        <input type="file" id="video-selector" accept="video/*,image/*" hidden>
         <label for="video-selector" class="custom-file-button" id="video-selector-txt">
-            動画を選択
+            背景を選択
         </label>
     </div>
 
-    <div id="speed-display">Checking...</div>
+    <div id="speed-box">
+        <div id="speed-title">回線速度</div>
+        <div id="speed-value"><span id="speed-num">--</span><span id="speed-unit"></span></div>
+        <div id="speed-meta">未計測</div>
+        <div id="speed-chart"></div>
+        <div id="speed-stats"></div>
+        <div id="speed-display"></div>
+        <button id="speed-run-btn">↻ 再計測</button>
+    </div>
 
-    <div id="version-info">Version 1.1</div>
+    <div id="version-info">Version 1.1.1</div>
     <div id="update-status"></div>
 
     <div id="hoge" style="position: absolute; top: 900px;width: 100vh;height: 10px;"></div>
@@ -134,6 +117,8 @@
     <script src="assets/script/versions.js"></script>
     <script src="assets/script/weather.js"></script>
     <script src="assets/script/speedchecker.js"></script>
+    <script src="assets/script/calculator.js"></script>
+    <script src="assets/script/shortcuts.js"></script>
 </body>
 
 </html>

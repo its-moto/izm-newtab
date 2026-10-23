@@ -1,4 +1,4 @@
-// indexDBを使用した映像記憶+描画システム
+// indexDBを使用した背景(動画・画像)記憶+描画システム
 
 const canvas = document.getElementById('background');
 const ctx = canvas.getContext('2d');
@@ -7,9 +7,12 @@ const selector = document.getElementById('video-selector');
 
 const DB_NAME = "MyDesktopDB";
 const STORE_NAME = "assets";
+const MEDIA_KEY = "bgMedia";
+const LEGACY_KEY = "bgVideo"; // 旧バージョンの保存キー（互換用）
 let db;
 
-let currentFadeCount = -30;
+let currentFadeCount = 0;
+let imageLayer = null; // 背景が画像のとき、cover済みの描画結果を保持
 
 // Canvas初期設定
 canvas.width = 1920;
@@ -23,42 +26,76 @@ request.onupgradeneeded = (e) => {
 
 request.onsuccess = (e) => {
     db = e.target.result;
-    loadStoredVideo();
+    loadStoredBackground();
 };
 
-
-// 動画ファイルが選択された時の処理
+// 背景ファイルが選択された時の処理
 selector.addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
     const transaction = db.transaction(STORE_NAME, "readwrite");
-    transaction.objectStore(STORE_NAME).put(file, "bgVideo");
+    const store = transaction.objectStore(STORE_NAME);
+    store.put(file, MEDIA_KEY);
+    store.delete(LEGACY_KEY);
+    store.delete("lastTime"); // 別の背景になるので再生位置はリセット
+    video.currentPlayTime = 0; // 動画の再生位置もリセット
 
-    transaction.oncomplete = () => {
-        location.reload(); // 保存したら再読み込みして適用
-    };
+    transaction.oncomplete = () => location.reload(); // 保存したら再読み込みして適用
 });
 
-video.oncanplay = () => {
+function fadeInPage() {
     document.body.style.animation = "fadeIn 0.8s ease-in-out forwards";
-};
+}
 
-async function loadStoredVideo() {
+video.oncanplay = fadeInPage;
+
+// 画面いっぱいに「cover」で描画（はみ出しは中央で切り抜き）
+function drawCover(targetCtx, source, sw, sh) {
+    const tw = targetCtx.canvas.width;
+    const th = targetCtx.canvas.height;
+    const scale = Math.max(tw / sw, th / sh);
+    const w = sw * scale;
+    const h = sh * scale;
+    targetCtx.drawImage(source, (tw - w) / 2, (th - h) / 2, w, h);
+}
+
+async function loadStoredBackground() {
     const transaction = db.transaction(STORE_NAME, "readonly");
     const store = transaction.objectStore(STORE_NAME);
 
-    const videoBlob = await getValue(store, "bgVideo");
-    const lastTime = await getValue(store, "lastTime") || 0;
+    const mediaBlob = (await getValue(store, MEDIA_KEY)) || (await getValue(store, LEGACY_KEY));
+    const lastTime = (await getValue(store, "lastTime")) || 0;
 
-    if (videoBlob) {
-        video.src = URL.createObjectURL(videoBlob);
+    if (!mediaBlob) return;
+
+    if (mediaBlob.type.startsWith('image/')) {
+        loadImageBackground(mediaBlob);
+    } else {
+        video.src = URL.createObjectURL(mediaBlob);
         video.currentTime = lastTime;
         video.play().catch(() => {
             window.addEventListener('click', () => video.play(), { once: true });
         });
         requestAnimationFrame(draw);
     }
+}
+
+function loadImageBackground(blob) {
+    const url = URL.createObjectURL(blob);
+    const img = new Image();
+    img.onload = () => {
+        // 一度だけ1920x1080にcoverで描いておき、毎フレームはそれをコピーするだけにする
+        imageLayer = document.createElement('canvas');
+        imageLayer.width = canvas.width;
+        imageLayer.height = canvas.height;
+        drawCover(imageLayer.getContext('2d'), img, img.naturalWidth, img.naturalHeight);
+        URL.revokeObjectURL(url);
+        fadeInPage();
+        requestAnimationFrame(draw);
+    };
+    img.onerror = () => URL.revokeObjectURL(url);
+    img.src = url;
 }
 
 // 描画
@@ -68,45 +105,43 @@ function draw() {
         currentFadeCount++;
     }
 
-    // 2. ビデオを描画
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    // 2. 背景を描画
+    if (imageLayer) {
+        ctx.drawImage(imageLayer, 0, 0);
+    } else if (video.readyState >= 2 && video.videoWidth) {
+        drawCover(ctx, video, video.videoWidth, video.videoHeight);
+    }
 
     // 3. フェードイン（徐々に透明にする黒い四角）
-    // 計算結果を ${} で文字列に埋め込む
     const opacity = 1 - (currentFadeCount / 100);
-    
+
     if (opacity > 0) {
         ctx.fillStyle = `rgba(0, 0, 0, ${opacity})`;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
-    
-    // 4. 全体のオーバーレイ（もし常に少し暗くしたいなら）
+
+    // 4. 全体のオーバーレイ（背景の不透明度スライダー）
     ctx.fillStyle = `rgba(0, 0, 0, ${sliderValue})`;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     requestAnimationFrame(draw);
 }
 
-// 1. 値を保持するための変数
+// 値を保持するための変数
 let sliderValue = 0.5;
 
 const slider = document.getElementById('bg-opacity');
 const display = document.getElementById('valDisplay');
 
-// 2. 入力イベントを監視
+// 入力イベントを監視
 slider.addEventListener('input', (e) => {
-    // 文字列として取得されるため、数値型(Number)に変換して代入
     sliderValue = Number(e.target.value);
-
-    // 3. 画面上の表示も更新（確認用）
     display.textContent = sliderValue;
-
-    // ここで他の関数を呼ぶなど、変数を使った処理を行えます
-    console.log("変数の値が更新されました:", sliderValue);
 });
 
 const saveCurrentTime = () => {
-    if (!video.paused && db) {
+    // 動画のときだけ再生位置を保存
+    if (db && video.src && !video.paused) {
         const tx = db.transaction(STORE_NAME, "readwrite");
         tx.objectStore(STORE_NAME).put(video.currentTime, "lastTime");
     }
@@ -115,10 +150,10 @@ const saveCurrentTime = () => {
 // 1. 定期実行（バックアップ）
 setInterval(saveCurrentTime, 5000);
 
-// 2. ページを離れる瞬間に保存（記憶にある方法）
+// 2. ページを離れる瞬間に保存
 window.addEventListener('beforeunload', saveCurrentTime);
 
-// 3. ブラウザのタブが非表示になった時（スマホや別タブ移動時）
+// 3. ブラウザのタブが非表示になった時
 document.addEventListener('visibilitychange', () => {
     if (document.hidden) saveCurrentTime();
 });
@@ -127,6 +162,7 @@ function getValue(store, key) {
     return new Promise(resolve => {
         const req = store.get(key);
         req.onsuccess = () => resolve(req.result);
+        req.onerror = () => resolve(undefined);
     });
 }
 
@@ -140,14 +176,13 @@ window.addEventListener('resize', resize);
 resize();
 
 // --- ショートカットキーの実装 ---
-// Ctrl + Alt + Shift + M でミュート切替
+// Ctrl + Alt + Shift + M でミュート切替（動画のときのみ意味あり）
 window.addEventListener('keydown', (e) => {
     if (e.ctrlKey && e.altKey && e.shiftKey && e.code === 'KeyM') {
         video.muted = !video.muted;
         console.log(video.muted ? "Muted" : "Unmuted");
 
-        // ミュート解除時に再生が止まっていたら動かす（ブラウザ対策）
-        if (!video.muted) {
+        if (!video.muted && video.src) {
             video.play().catch(console.error);
         }
     }

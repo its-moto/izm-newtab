@@ -111,7 +111,7 @@ body {
     position: absolute;
     top: 135px;
     left: 50%;
-    transform: translate(-50%,0);
+    transform: translate(-50%, 0);
 
     /* レイアウトの肝 */
     display: flex;
@@ -120,8 +120,9 @@ body {
     /* 上下中央揃え */
     gap: 10px;
     /* アイコン同士の間隔（ここでお好みの余白に！） */
-    padding: 5px 10px;
-    /* ボックス内側の余白 (上下 左右) */
+    padding: 5px 10px 20px;
+    /* 下は「編集」ボタン用の余白 */
+    min-width: 140px;
 
     background-color: rgba(0, 0, 0, 0.5);
     border: solid 3px var(--main-color);
@@ -337,31 +338,407 @@ td {
     font-size: 15px;
 }
 
-#weather-box{
+#weather-box {
     position: absolute;
     top: 600px;
     left: 50%;
-    transform: translate(-50%,0);
+    transform: translate(-50%, 0);
     width: 600px;
-    padding : 15px;
+    padding: 15px;
     background-color: rgba(0, 0, 0, 0.5);
     border: solid 3px var(--main-color);
 }
+
 #forecast-list {
     display: flex;
     overflow-x: auto;
     white-space: nowrap;
-    scrollbar-width: none; /* Firefox用 */
+    scrollbar-width: none;
+    /* Firefox用 */
 }
 
 #forecast-list::-webkit-scrollbar {
-    display: none; /* Chrome, Safari用 */
+    display: none;
+    /* Chrome, Safari用 */
 }
 
 /* 予報の各アイテムのスタイル */
 .hour-item {
-    flex: 0 0 auto; /* 幅を固定して潰れないようにする */
+    flex: 0 0 auto;
+    /* 幅を固定して潰れないようにする */
     padding: 5px;
     border-radius: 8px;
     background: rgba(255, 255, 255, 0.05);
+}
+
+/* 電卓のスタイル */
+
+#calc-box {
+    position: absolute;
+    top: 135px;
+    right: 80px;
+    width: 240px;
+    padding: 10px;
+    background-color: rgba(0, 0, 0, 0.5);
+    border: solid 3px var(--main-color);
+    outline: none;
+}
+
+#calc-history {
+    min-height: 18px;
+    font-size: 14px;
+    text-align: right;
+    opacity: 0.6;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+#calc-display {
+    font-size: 30px;
+    text-align: right;
+    padding: 4px 6px;
+    margin-bottom: 8px;
+    border-bottom: 2px solid var(--main-color);
+    overflow-x: auto;
+    white-space: nowrap;
+    scrollbar-width: none;
+    font-variant-numeric: tabular-nums;
+}
+
+#calc-display::-webkit-scrollbar {
+    display: none;
+}
+
+#calc-display.error {
+    color: #ff5555;
+}
+
+#calc-keys {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+}
+
+.calc-key {
+    background: transparent;
+    border: 1px solid var(--main-color);
+    color: var(--main-color);
+    font-family: inherit;
+    font-size: 20px;
+    height: 36px;
+    cursor: pointer;
+    transition: 0.15s;
+}
+
+.calc-key:hover {
+    background: var(--main-color);
+    color: black;
+}
+
+.calc-key:active {
+    transform: scale(0.94);
+}
+
+.calc-key.op {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.calc-key.wide {
+    grid-column: span 3;
+}
+
+/* 今日の曜日の列 */
+
+th.today {
+    background: color-mix(in srgb, var(--main-color) 30%, transparent);
+}
+
+td.today:not(.period-num) {
+    background: color-mix(in srgb, var(--main-color) 12%, transparent);
+}
+
+/* 今日の曜日の列をハイライト */
+#timetable-box th.today,
+#timetable-box td.today {
+    background-color: color-mix(in srgb, var(--main-color) 18%, transparent);
+}
+
+/* ショートカット: 長い名前は省略表示 */
+.shortcut-icon span {
+    max-width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+/* ショートカット編集 */
+
+#sc-edit-btn {
+    position: absolute;
+    right: 8px;
+    bottom: 2px;
+    padding: 0;
+    background: none;
+    border: none;
+    color: var(--main-color);
+    opacity: 0.6;
+    font-family: inherit;
+    font-size: 13px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+#sc-edit-btn:hover {
+    opacity: 1;
+}
+
+.sc-empty {
+    font-size: 14px;
+    opacity: 0.5;
+    padding: 0 6px;
+}
+
+#sc-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.6);
+}
+
+#sc-modal[hidden] {
+    display: none;
+}
+
+#sc-dialog {
+    width: 620px;
+    max-width: 92vw;
+    padding: 15px;
+    background-color: rgba(0, 0, 0, 0.88);
+    border: solid 3px var(--main-color);
+    color: var(--main-color);
+}
+
+#sc-title {
+    font-size: 22px;
+    margin-bottom: 2px;
+}
+
+#sc-count {
+    font-size: 16px;
+    opacity: 0.7;
+    margin-left: 8px;
+}
+
+#sc-hint {
+    font-size: 13px;
+    opacity: 0.6;
+    margin-bottom: 10px;
+}
+
+#sc-list {
+    max-height: 55vh;
+    overflow-y: auto;
+    scrollbar-width: thin;
+}
+
+.sc-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px;
+    margin-bottom: 6px;
+    border: 1px solid color-mix(in srgb, var(--main-color) 35%, transparent);
+}
+
+.sc-row.dragging {
+    opacity: 0.4;
+}
+
+.sc-handle {
+    cursor: grab;
+    font-size: 22px;
+    padding: 0 4px;
+    user-select: none;
+}
+
+.sc-fav {
+    width: 20px;
+    height: 20px;
+    flex: none;
+}
+
+.sc-name,
+.sc-url {
+    background: transparent;
+    border: 1px solid color-mix(in srgb, var(--main-color) 50%, transparent);
+    color: var(--main-color);
+    font-family: inherit;
+    font-size: 16px;
+    padding: 4px 6px;
+    min-width: 0;
+}
+
+.sc-name {
+    width: 110px;
+    flex: none;
+}
+
+.sc-url {
+    flex: 1;
+}
+
+.sc-name:focus,
+.sc-url:focus {
+    outline: none;
+    border-color: var(--main-color);
+    background: color-mix(in srgb, var(--main-color) 10%, transparent);
+}
+
+.sc-name.invalid,
+.sc-url.invalid {
+    border-color: #ff5555;
+}
+
+.sc-del,
+#sc-actions button {
+    background: transparent;
+    border: 1px solid var(--main-color);
+    color: var(--main-color);
+    font-family: inherit;
+    font-size: 15px;
+    padding: 3px 12px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.sc-del {
+    padding: 3px 9px;
+    flex: none;
+}
+
+.sc-del:hover,
+#sc-actions button:hover:not(:disabled) {
+    background: var(--main-color);
+    color: black;
+}
+
+#sc-actions button:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+#sc-error {
+    min-height: 20px;
+    margin: 6px 0;
+    font-size: 14px;
+    color: #ff5555;
+}
+
+#sc-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.sc-spacer {
+    flex: 1;
+}
+
+/* 回線速度パネル */
+
+#speed-box {
+    position: absolute;
+    top: 440px;
+    left: 80px;
+    width: 246px;
+    box-sizing: border-box;
+    padding: 10px;
+    background-color: rgba(0, 0, 0, 0.5);
+    border: solid 3px var(--main-color);
+}
+
+#speed-title {
+    font-size: 20px;
+    margin-bottom: 4px;
+}
+
+#speed-value {
+    line-height: 1.1;
+}
+
+#speed-num {
+    font-size: 42px;
+    font-variant-numeric: tabular-nums;
+}
+
+#speed-unit {
+    font-size: 20px;
+    margin-left: 4px;
+}
+
+#speed-meta {
+    font-size: 14px;
+    opacity: 0.7;
+    margin-top: 2px;
+}
+
+#speed-chart {
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-end;
+    gap: 3px;
+    height: 56px;
+    margin: 10px 0 4px;
+    border-bottom: 1px solid color-mix(in srgb, var(--main-color) 50%, transparent);
+}
+
+.speed-bar {
+    flex: 1 1 0;
+    max-width: 20px;
+    min-height: 2px;
+    background: var(--main-color);
+    opacity: 0.45;
+}
+
+.speed-bar:last-child {
+    opacity: 1;
+}
+
+#speed-stats {
+    font-size: 13px;
+    opacity: 0.7;
+    min-height: 16px;
+}
+
+#speed-display {
+    font-size: 13px;
+    min-height: 16px;
+    margin-top: 4px;
+    opacity: 0.85;
+}
+
+#speed-run-btn {
+    width: 100%;
+    margin-top: 6px;
+    background: transparent;
+    border: 1px solid var(--main-color);
+    color: var(--main-color);
+    font-family: inherit;
+    font-size: 16px;
+    padding: 3px 0;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+#speed-run-btn:hover:not(:disabled) {
+    background: var(--main-color);
+    color: black;
+}
+
+#speed-run-btn:disabled {
+    opacity: 0.4;
+    cursor: wait;
 }
