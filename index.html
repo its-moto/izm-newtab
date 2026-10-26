@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>新しいタブ</title>
+    <link rel="icon" id="favicon" href="assets/icons/icon48.png">
     <link rel="stylesheet" href="assets/css/styles.css">
 </head>
 
@@ -21,6 +22,7 @@
     <div id="battery-box">
         <div id="level">取得中...</div>
         <div id="status">状態を確認中...</div>
+        <div id="battery-time"></div>
         <div id="battery-bg">
             <div id="battery-indicator"></div>
         </div>
@@ -86,6 +88,15 @@
         <div id="calc-keys"></div>
     </div>
 
+    <div id="sys-box">
+        <div id="sys-title">システム</div>
+        <div class="sys-row"><span>CPU</span><span id="cpu-value" class="sys-value">--%</span></div>
+        <canvas id="cpu-graph" class="sys-graph"></canvas>
+        <div class="sys-row"><span>メモリ</span><span id="mem-value" class="sys-value">--</span></div>
+        <canvas id="mem-graph" class="sys-graph"></canvas>
+        <div id="sys-note"></div>
+    </div>
+
     <video id="bg-video" loop muted playsinline style="display:none;"></video>
     <div id="setup-ui">
         <input type="file" id="video-selector" accept="video/*,image/*" hidden>
@@ -104,7 +115,7 @@
         <button id="speed-run-btn">↻ 再計測</button>
     </div>
 
-    <div id="version-info">Version 1.1.1</div>
+    <div id="version-info">Version 1.1.2</div>
     <div id="update-status"></div>
 
     <div id="hoge" style="position: absolute; top: 900px;width: 100vh;height: 10px;"></div>
@@ -119,6 +130,8 @@
     <script src="assets/script/speedchecker.js"></script>
     <script src="assets/script/calculator.js"></script>
     <script src="assets/script/shortcuts.js"></script>
+    <script src="assets/script/favicon.js"></script>
+    <script src="assets/script/sysmon.js"></script>
 </body>
 
 </html>

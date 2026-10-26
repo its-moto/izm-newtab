@@ -1,5 +1,5 @@
 async function checkUpdate() {
-  const currentVersion = chrome.runtime?.getManifest?.()?.version || "1.1.1";
+  const currentVersion = chrome.runtime?.getManifest?.()?.version || "1.1.2";
   const githubUrl = 'https://raw.githubusercontent.com/its-moto/izm-newtab/main/version.json';
 
   try {
