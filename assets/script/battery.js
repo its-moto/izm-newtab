@@ -1,3 +1,13 @@
+// =====================================
+// バッテリー表示
+// 残り時間は Battery API の値を使い、出ない（Infinity の）ときは残量の減り方から自分で推定する
+// =====================================
+
+const BATTERY_SAMPLES_KEY = 'battery-samples';
+const BATTERY_LOW = 0.2;              // これ以下で警告表示
+const ESTIMATE_WINDOW_MS = 60 * 60000; // 推定に使う期間（直近1時間）
+const ESTIMATE_MIN_DROP = 0.02;       // 推定に必要な残量の変化（2%）
+
 // 秒数を「2時間15分」「45分」の形にする
 function formatDuration(sec) {
     const totalMin = Math.round(sec / 60);
@@ -6,19 +16,55 @@ function formatDuration(sec) {
     return h > 0 ? `${h}時間${m}分` : `${m}分`;
 }
 
-// 充電中は満充電まで、放電中は残り時間（不明なときは Infinity が返る）
-function describeBatteryTime(battery) {
-    if (battery.charging) {
-        if (battery.level >= 1 || battery.chargingTime === 0) return "満充電";
-        return Number.isFinite(battery.chargingTime)
-            ? `満充電まで${formatDuration(battery.chargingTime)}`
-            : "計算中...";
+// ---------- 自前の推定 ----------
+// 新しいタブは開いている時間が短いので、残量の記録は localStorage に残してタブをまたいで使う
+function loadSamples() {
+    try {
+        const data = JSON.parse(localStorage.getItem(BATTERY_SAMPLES_KEY));
+        return data && Array.isArray(data.points) ? data : null;
+    } catch {
+        return null;
     }
-    return Number.isFinite(battery.dischargingTime)
-        ? `残り${formatDuration(battery.dischargingTime)}`
-        : "計算中...";
 }
 
+function recordSample(battery) {
+    let data = loadSamples();
+    // 充電⇔放電が切り替わったら記録をやり直す
+    if (!data || data.charging !== battery.charging) data = { charging: battery.charging, points: [] };
+
+    const now = Date.now();
+    const last = data.points[data.points.length - 1];
+    if (!last || last.level !== battery.level) data.points.push({ time: now, level: battery.level });
+    data.points = data.points.filter(p => now - p.time < ESTIMATE_WINDOW_MS);
+    localStorage.setItem(BATTERY_SAMPLES_KEY, JSON.stringify(data));
+    return data;
+}
+
+// 直近1時間の残量の変化から、満充電まで／空になるまでの秒数を出す（足りなければ null）
+function estimateSeconds(battery, data) {
+    const first = data.points[0];
+    if (!first) return null;
+    const change = Math.abs(battery.level - first.level);
+    const elapsed = (Date.now() - first.time) / 1000;
+    if (change < ESTIMATE_MIN_DROP || elapsed <= 0) return null;
+    const perSec = change / elapsed;
+    return battery.charging ? (1 - battery.level) / perSec : battery.level / perSec;
+}
+
+// 充電中は満充電まで、放電中は残り時間
+function describeBatteryTime(battery, data) {
+    if (battery.charging && (battery.level >= 1 || battery.chargingTime === 0)) return "満充電";
+
+    const apiSec = battery.charging ? battery.chargingTime : battery.dischargingTime;
+    const prefix = battery.charging ? "満充電まで" : "残り";
+    if (Number.isFinite(apiSec)) return `${prefix}${formatDuration(apiSec)}`;
+
+    const est = estimateSeconds(battery, data);
+    if (est !== null) return `${prefix}約${formatDuration(est)}`;
+    return battery.charging ? "充電速度を計測中..." : "減り方を計測中...";
+}
+
+// ---------- 表示 ----------
 async function updateBatteryInfo() {
     // Battery APIがサポートされているか確認
     if (!navigator.getBattery) {
@@ -29,34 +75,33 @@ async function updateBatteryInfo() {
 
     // バッテリーオブジェクトを取得
     const battery = await navigator.getBattery();
+    const box = document.getElementById('battery-box');
+    const fill = document.getElementById('battery-fill');
 
     function displayInfo() {
-        // 可読性と再利用性を高める書き方の例
         const levelPercent = Math.round(battery.level * 100);
-        const indicator = document.getElementById('battery-indicator');
+        document.getElementById('level').innerText = `${levelPercent}%`;
+        fill.style.width = `${levelPercent}%`;
 
-        // 文字列として%を付与
-        const percentStr = `${levelPercent}%`;
+        // 充電中は光が流れる・残り少ないと赤く点滅（CSS側でアニメーション）
+        box.classList.toggle('charging', battery.charging);
+        box.classList.toggle('low', !battery.charging && battery.level <= BATTERY_LOW);
 
-        document.getElementById('level').innerText = percentStr;
-        indicator.style.background = `linear-gradient(to right, var(--main-color) ${percentStr}, transparent ${percentStr})`;
+        document.getElementById('status').innerText = battery.charging ? "充電中" : "放電中";
 
-        // 充電中かどうかの判定
-        const chargingStatus = battery.charging ? "充電中" : "放電中";
-        document.getElementById('status').innerText = chargingStatus;
-
-        // 残り時間
-        document.getElementById('battery-time').innerText = describeBatteryTime(battery);
+        const data = recordSample(battery);
+        document.getElementById('battery-time').innerText = describeBatteryTime(battery, data);
     }
 
-    // 初期表示
-    displayInfo();
+    // 初期表示（0%から伸びるアニメーションを見せるため1フレーム待つ）
+    requestAnimationFrame(displayInfo);
 
     // 状態が変化した時のイベントリスナー
     battery.addEventListener('levelchange', displayInfo); // 残量変化
     battery.addEventListener('chargingchange', displayInfo); // 充電器の接続・切断
     battery.addEventListener('dischargingtimechange', displayInfo); // 残り時間の変化
     battery.addEventListener('chargingtimechange', displayInfo); // 満充電までの時間の変化
+    setInterval(displayInfo, 60000); // 推定の残り時間を更新
 }
 
 updateBatteryInfo();

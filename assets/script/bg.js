@@ -148,6 +148,11 @@ let sliderValue = 0.5;
 const slider = document.getElementById('bg-opacity');
 const display = document.getElementById('valDisplay');
 
+// スライダーの塗りつぶし位置（CSS の --val）
+function paintSlider() {
+    slider.style.setProperty('--val', `${slider.value * 100}%`);
+}
+
 // 前回の値を復元
 const OPACITY_KEY = 'bg-opacity';
 const savedOpacity = Number(localStorage.getItem(OPACITY_KEY));
@@ -162,7 +167,9 @@ slider.addEventListener('input', (e) => {
     sliderValue = Number(e.target.value);
     display.textContent = sliderValue;
     localStorage.setItem(OPACITY_KEY, sliderValue);
+    paintSlider();
 });
+paintSlider();
 
 const saveCurrentTime = () => {
     // 動画のときだけ再生位置を保存

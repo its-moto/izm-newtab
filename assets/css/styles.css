@@ -103,7 +103,63 @@ body {
     left: 3px;
     width: 100px;
     height: 30px;
-    background: linear-gradient(to right, var(--main-color)50%, rgba(0, 0, 0, 0) 50%);
+    overflow: hidden;
+    filter: drop-shadow(0 0 4px var(--main-color));
+}
+
+/* 残量。セル状に区切って見せ、幅の変化はなめらかに伸び縮みさせる */
+#battery-fill {
+    position: relative;
+    height: 100%;
+    width: 0;
+    overflow: hidden;
+    background: var(--main-color);
+    -webkit-mask: repeating-linear-gradient(to right, #000 0 8px, transparent 8px 10px);
+    mask: repeating-linear-gradient(to right, #000 0 8px, transparent 8px 10px);
+    transition: width 1.2s cubic-bezier(0.22, 1, 0.36, 1), background-color 0.3s;
+    animation: battery-breathe 3s ease-in-out infinite;
+}
+
+/* 充電中：光の帯が左から右へ流れる */
+#battery-box.charging #battery-fill {
+    animation: none;
+}
+
+#battery-box.charging #battery-fill::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 40px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.85), transparent);
+    animation: battery-sweep 1.6s linear infinite;
+}
+
+/* 残り少ない：テーマカラーのままふわっと明滅 */
+#battery-box.low #battery-fill {
+    animation: battery-blink 1.2s ease-in-out infinite alternate;
+}
+
+@keyframes battery-breathe {
+    50% {
+        opacity: 0.7;
+    }
+}
+
+@keyframes battery-sweep {
+    from {
+        left: -40px;
+    }
+
+    to {
+        left: 100%;
+    }
+}
+
+@keyframes battery-blink {
+    to {
+        opacity: 0.2;
+    }
 }
 
 /* ショートカットアイコンのスタイル */
@@ -179,6 +235,45 @@ body {
     background-color: rgba(0, 0, 0, 0.5);
     padding: 5px;
     font-size: 18px;
+}
+
+/* 不透明度スライダー（--val は bg.js で 0〜100% を入れる） */
+#bg-opacity {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 16px;
+    margin: 4px 0 0;
+    background: transparent;
+    cursor: pointer;
+}
+
+#bg-opacity::-webkit-slider-runnable-track {
+    height: 4px;
+    background: linear-gradient(to right,
+            var(--main-color) var(--val, 50%),
+            color-mix(in srgb, var(--main-color) 20%, transparent) var(--val, 50%));
+    box-shadow: 0 0 4px color-mix(in srgb, var(--main-color) 60%, transparent);
+}
+
+#bg-opacity::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 10px;
+    height: 16px;
+    margin-top: -6px;
+    background: var(--main-color);
+    border: 2px solid black;
+    box-shadow: 0 0 6px var(--main-color);
+    transition: transform 0.15s;
+}
+
+#bg-opacity:hover::-webkit-slider-thumb,
+#bg-opacity:active::-webkit-slider-thumb {
+    transform: scaleY(1.25);
+}
+
+#bg-opacity:focus {
+    outline: none;
 }
 
 /* タイムテーブルのスタイル */
@@ -931,6 +1026,90 @@ td.today:not(.period-num) {
 #sys-note:empty {
     display: none;
 }
+/* 保存データ・ダウンロード（システムの下。top は dlmon.js で合わせる） */
+#dl-box {
+    position: absolute;
+    top: 780px;
+    right: 80px;
+    width: 266px;
+    box-sizing: border-box;
+    padding: 10px;
+    background-color: rgba(0, 0, 0, 0.5);
+    border: solid 3px var(--main-color);
+}
+
+.dl-section-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-size: 16px;
+}
+
+.dl-section-title:not(:first-child) {
+    margin-top: 10px;
+}
+
+#storage-bar {
+    height: 5px;
+    margin-top: 4px;
+    background: color-mix(in srgb, var(--main-color) 12%, transparent);
+}
+
+#storage-fill {
+    height: 100%;
+    width: 0;
+    background: var(--main-color);
+    box-shadow: 0 0 4px var(--main-color);
+}
+
+#storage-detail,
+.dl-empty {
+    font-size: 12px;
+    opacity: 0.7;
+    margin-top: 2px;
+}
+
+.dl-item {
+    margin-top: 6px;
+    font-size: 13px;
+}
+
+.dl-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dl-progress {
+    height: 4px;
+    margin: 2px 0;
+    background: color-mix(in srgb, var(--main-color) 12%, transparent);
+}
+
+.dl-progress-fill {
+    height: 100%;
+    background: var(--main-color);
+    box-shadow: 0 0 4px var(--main-color);
+    transition: width 0.5s linear;
+}
+
+.dl-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    opacity: 0.7;
+    font-variant-numeric: tabular-nums;
+}
+
+.dl-item.paused .dl-progress-fill {
+    opacity: 0.4;
+    box-shadow: none;
+}
+
+.dl-item.done {
+    opacity: 0.55;
+}
+
 /* 緊急地震速報 */
 
 #eew-box {

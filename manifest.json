@@ -20,6 +20,7 @@
   },
   "permissions": [
     "system.cpu",
-    "system.memory"
+    "system.memory",
+    "downloads"
   ]
 }
