@@ -815,3 +815,102 @@ td.today:not(.period-num) {
 #sys-note:empty {
     display: none;
 }
+/* 緊急地震速報 */
+
+#eew-box {
+    position: absolute;
+    top: 860px;
+    left: 50%;
+    transform: translate(-50%, 0);
+    width: 600px;
+    padding: 10px 15px;
+    background-color: rgba(0, 0, 0, 0.5);
+    border: solid 3px var(--main-color);
+}
+
+#eew-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 24px;
+    margin-bottom: 4px;
+}
+
+#eew-head label {
+    font-size: 18px;
+}
+
+#eew-filter {
+    background: transparent;
+    border: 1px solid currentColor;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+}
+
+#eew-filter option {
+    background: black;
+}
+
+#eew-list {
+    font-size: 20px;
+    max-height: 250px;
+    overflow-y: auto;
+    scrollbar-width: none;
+}
+
+/* 地震ごとに「--- 発生時刻 ---」で区切り、ラベルと値を2組ずつ（2x2）並べる */
+.eew-item {
+    display: grid;
+    grid-template-columns: max-content 1fr max-content 1fr;
+    padding-bottom: 2px;
+    line-height: 1.4;
+}
+
+.eew-sep {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 16px;
+    opacity: 0.8;
+}
+
+.eew-sep::before,
+.eew-sep::after {
+    content: "";
+    flex: 1;
+    border-top: 1px dashed currentColor;
+}
+
+.eew-title {
+    grid-column: 1 / -1;
+    font-weight: bold;
+}
+
+.eew-label {
+    min-width: 2em;
+}
+
+.eew-item:not(.current) {
+    opacity: 0.7;
+}
+
+/* 発表中（予報） */
+#eew-box.active {
+    border-color: #ffcc00;
+    color: #ffcc00;
+}
+
+/* 発表中（警報） */
+#eew-box.warn {
+    border-color: #ff3030;
+    color: #ff3030;
+    animation: eew-blink 1s steps(2, start) infinite;
+}
+
+@keyframes eew-blink {
+    to {
+        background-color: rgba(120, 0, 0, 0.6);
+    }
+}
