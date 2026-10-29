@@ -18,7 +18,7 @@ function Finish($code) {
 }
 
 try {
-    Write-Host '=== IZM-NewTab アップデート ===' -ForegroundColor Cyan
+    Write-Host '=== 出雲式新しいタブ アップデート ===' -ForegroundColor Cyan
 
     # 正しいフォルダーか確認
     $manifestPath = Join-Path $Root 'manifest.json'

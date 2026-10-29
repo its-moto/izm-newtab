@@ -774,6 +774,212 @@ td {
     grid-column: span 3;
 }
 
+.calc-key.wide2 {
+    grid-column: span 2;
+}
+
+/* 関数電卓（小さい電卓の fx から開く） */
+#sci-box {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 30;
+    width: 680px;
+    max-width: calc(100vw - 32px);
+    max-height: calc(100vh - 32px);
+    overflow-x: hidden;
+    overflow-y: auto;
+    box-sizing: border-box;
+    padding: 12px 14px;
+    background-color: rgba(0, 0, 0, 0.94);
+    border: solid 3px var(--main-color);
+    box-shadow: 0 0 24px color-mix(in srgb, var(--main-color) 35%, transparent);
+    color: var(--main-color);
+}
+
+#sci-box[hidden] {
+    display: none;
+}
+
+#sci-head {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 8px;
+}
+
+#sci-title {
+    margin-right: auto;
+    font-size: 22px;
+}
+
+.sci-tool {
+    background: transparent;
+    border: 1px solid var(--main-color);
+    color: var(--main-color);
+    font-family: inherit;
+    font-size: 14px;
+    padding: 2px 8px;
+    cursor: pointer;
+    transition: 0.15s;
+}
+
+.sci-tool:hover:not(:disabled),
+.sci-tool.active {
+    background: var(--main-color);
+    color: black;
+}
+
+.sci-tool:disabled {
+    opacity: 0.35;
+    cursor: default;
+}
+
+#sci-history {
+    max-height: 96px;
+    overflow-y: auto;
+    margin-bottom: 6px;
+    font-size: 14px;
+    scrollbar-width: thin;
+}
+
+.sci-history-item {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 1px 4px;
+    opacity: 0.65;
+    cursor: pointer;
+}
+
+.sci-history-item:hover {
+    opacity: 1;
+    background: color-mix(in srgb, var(--main-color) 15%, transparent);
+}
+
+.sci-history-expr,
+.sci-history-result {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.sci-history-result {
+    flex-shrink: 0;
+    max-width: 50%;
+}
+
+#sci-input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 6px 8px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--main-color);
+    color: var(--main-color);
+    font-family: inherit;
+    font-size: 20px;
+    outline: none;
+}
+
+#sci-input::placeholder {
+    color: var(--main-color);
+    opacity: 0.4;
+    font-size: 13px;
+}
+
+#sci-note {
+    min-height: 16px;
+    margin-top: 3px;
+    font-size: 13px;
+    opacity: 0.7;
+    overflow-wrap: anywhere;
+}
+
+#sci-note.error {
+    color: #ff5555;
+    opacity: 1;
+}
+
+#sci-result {
+    font-size: 34px;
+    text-align: right;
+    overflow-x: auto;
+    white-space: nowrap;
+    scrollbar-width: none;
+}
+
+#sci-result.expr {
+    font-size: 26px;
+}
+
+#sci-sub {
+    min-height: 18px;
+    text-align: right;
+    font-size: 15px;
+    opacity: 0.65;
+}
+
+#sci-graph {
+    display: block;
+    width: 100%;
+    height: 240px;
+    margin-top: 6px;
+    border: 1px solid color-mix(in srgb, var(--main-color) 50%, transparent);
+    cursor: crosshair;
+    touch-action: none;
+}
+
+#sci-graph[hidden] {
+    display: none;
+}
+
+#sci-keys {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 5px;
+    margin-top: 8px;
+}
+
+.sci-key {
+    height: 34px;
+    background: transparent;
+    border: 1px solid var(--main-color);
+    color: var(--main-color);
+    font-family: inherit;
+    font-size: 16px;
+    cursor: pointer;
+    transition: 0.12s;
+}
+
+.sci-key:hover {
+    background: var(--main-color);
+    color: black;
+}
+
+.sci-key:active {
+    transform: scale(0.94);
+}
+
+.sci-key.num {
+    font-size: 19px;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.sci-key.op {
+    background: rgba(255, 255, 255, 0.14);
+}
+
+.sci-key.fx {
+    background: color-mix(in srgb, var(--main-color) 18%, transparent);
+}
+
+.sci-key.eq {
+    grid-column: span 2;
+    font-size: 20px;
+    background: color-mix(in srgb, var(--main-color) 30%, transparent);
+}
+
 /* 今日の曜日の列 */
 
 th.today {

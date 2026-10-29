@@ -120,6 +120,25 @@
         <div id="calc-keys"></div>
     </div>
 
+    <div id="sci-box" hidden>
+        <div id="sci-head">
+            <span id="sci-title">関数電卓</span>
+            <button id="sci-angle-btn" class="sci-tool" title="角度の単位（微分・積分・グラフは常にラジアン）">DEG</button>
+            <button id="sci-sd-btn" class="sci-tool" title="分数と小数を切り替え">分数 → 小数</button>
+            <button id="sci-tex-btn" class="sci-tool" title="結果を TeX でコピー">TeXコピー</button>
+            <button id="sci-graph-btn" class="sci-tool">グラフ</button>
+            <button id="sci-close-btn" class="sci-tool" title="閉じる（Esc）">×</button>
+        </div>
+        <div id="sci-history"></div>
+        <input type="text" id="sci-input" spellcheck="false" autocomplete="off"
+            placeholder="式か TeX を入力 例) diff(x^2 sin x, x)　int(sin x, x, 0, π)　\frac{1}{2}+\frac{1}{3}">
+        <div id="sci-note"></div>
+        <div id="sci-result">0</div>
+        <div id="sci-sub"></div>
+        <canvas id="sci-graph" hidden></canvas>
+        <div id="sci-keys"></div>
+    </div>
+
     <div id="sys-box">
         <div id="sys-title"><span>システム</span><span id="sys-os" class="sys-detail"></span></div>
         <div class="sys-row"><span>CPU</span><span id="cpu-detail" class="sys-detail"></span><span id="cpu-value" class="sys-value">--%</span></div>
@@ -212,6 +231,8 @@
     <script src="assets/script/speedchecker.js"></script>
     <script src="assets/script/netinfo.js"></script>
     <script src="assets/script/calculator.js"></script>
+    <script src="assets/script/scimath.js"></script>
+    <script src="assets/script/scicalc.js"></script>
     <script src="assets/script/shortcuts.js"></script>
     <script src="assets/script/favicon.js"></script>
     <script src="assets/script/sysmon.js"></script>

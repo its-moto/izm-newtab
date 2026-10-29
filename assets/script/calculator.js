@@ -14,7 +14,7 @@
         ['4', '4'], ['5', '5'], ['6', '6'], ['×', '×', 'op'],
         ['1', '1'], ['2', '2'], ['3', '3'], ['−', '−', 'op'],
         ['0', '0'], ['.', '.'], ['%', '%', 'op'], ['+', '+', 'op'],
-        ['ANS', 'ans', 'op'], ['=', 'eval', 'wide']
+        ['ANS', 'ans', 'op'], ['fx', 'sci', 'op'], ['=', 'eval', 'wide2']
     ];
 
     let expr = '';
@@ -121,6 +121,10 @@
                 expr = expr.slice(0, -1); break;
             case 'ans':
                 expr += lastAnswer; break;
+            case 'sci':
+                // 関数電卓を開く（今の式を引き継ぐ。scicalc.js）
+                window.openSciCalc?.(expr);
+                return;
             case 'eval': {
                 if (expr === '') return;
                 try {
