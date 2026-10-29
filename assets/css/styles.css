@@ -780,6 +780,34 @@ td.today:not(.period-num) {
     opacity: 0.85;
 }
 
+/* 接続状態・Ping */
+#net-info {
+    margin-top: 6px;
+    padding-top: 4px;
+    border-top: 1px solid color-mix(in srgb, var(--main-color) 35%, transparent);
+}
+
+.net-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+}
+
+.net-value {
+    font-variant-numeric: tabular-nums;
+}
+
+.net-value.bad {
+    color: #ff3030;
+}
+
+#net-ping-graph {
+    display: block;
+    width: 100%;
+    height: 18px;
+    margin-top: 2px;
+}
+
 #speed-actions {
     display: flex;
     gap: 6px;
@@ -831,8 +859,46 @@ td.today:not(.period-num) {
 }
 
 #sys-title {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
     font-size: 20px;
     margin-bottom: 4px;
+}
+
+/* 見出しの隣の小さい補足（OS・CPUの詳細） */
+.sys-detail {
+    flex: 1;
+    min-width: 0;
+    font-size: 12px;
+    opacity: 0.7;
+    text-align: right;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.sys-row .sys-detail {
+    margin: 0 8px;
+}
+
+/* コアごとの使用率（短い横向きバーを格子状に並べる。列数は sysmon.js で決める） */
+#cpu-cores {
+    display: grid;
+    gap: 3px 4px;
+    margin-top: 4px;
+}
+
+.cpu-core {
+    height: 5px;
+    background: color-mix(in srgb, var(--main-color) 12%, transparent);
+}
+
+.cpu-core-fill {
+    height: 100%;
+    background: var(--main-color);
+    box-shadow: 0 0 4px var(--main-color);
+    transition: width 0.25s linear;
 }
 
 .sys-row {

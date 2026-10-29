@@ -114,9 +114,10 @@
     </div>
 
     <div id="sys-box">
-        <div id="sys-title">システム</div>
-        <div class="sys-row"><span>CPU</span><span id="cpu-value" class="sys-value">--%</span></div>
+        <div id="sys-title"><span>システム</span><span id="sys-os" class="sys-detail"></span></div>
+        <div class="sys-row"><span>CPU</span><span id="cpu-detail" class="sys-detail"></span><span id="cpu-value" class="sys-value">--%</span></div>
         <canvas id="cpu-graph" class="sys-graph"></canvas>
+        <div id="cpu-cores"></div>
         <div class="sys-row"><span>メモリ</span><span id="mem-value" class="sys-value">--</span></div>
         <canvas id="mem-graph" class="sys-graph"></canvas>
         <div id="sys-note"></div>
@@ -138,6 +139,11 @@
         <div id="speed-chart"></div>
         <div id="speed-stats"></div>
         <div id="speed-display"></div>
+        <div id="net-info">
+            <div class="net-row"><span>接続</span><span id="net-status" class="net-value">--</span></div>
+            <div class="net-row"><span>Ping</span><span id="net-ping" class="net-value">--</span></div>
+            <canvas id="net-ping-graph"></canvas>
+        </div>
         <div id="speed-actions">
             <button id="speed-run-btn">↻ 再計測</button>
             <button id="speed-clear-btn">記録消去</button>
@@ -158,6 +164,7 @@
     <script src="assets/script/weather.js"></script>
     <script src="assets/script/warning.js"></script>
     <script src="assets/script/speedchecker.js"></script>
+    <script src="assets/script/netinfo.js"></script>
     <script src="assets/script/calculator.js"></script>
     <script src="assets/script/shortcuts.js"></script>
     <script src="assets/script/favicon.js"></script>

@@ -1,16 +1,21 @@
 // =====================================
 // システムモニター（CPU使用率・メモリ使用量のリアルタイムグラフ）
 // chrome.system.cpu / chrome.system.memory を使用（manifestの permissions が必要）
+// グラフは心電図のように左から右へ描き、右端まで行ったら左端から上書きする
 // =====================================
 (() => {
-    const SAMPLE_MS = 1000; // 計測間隔
-    const HISTORY = 60;     // グラフに残すサンプル数（1秒間隔なら60秒分）
+    const SAMPLE_MS = 250;   // 計測間隔
+    const TEXT_MS = 1000;    // 数値表示の更新間隔（速すぎると読めないので）
+    const SWEEP_MS = 10000;  // 左端から右端まで描くのにかかる時間
+    const GAP_PX = 14;       // 描画位置の先にある消去部分の幅
+    const EASE = 0.35;       // 1pxごとに目標値へ近づく割合（線をなめらかにする）
 
     const cpuValue = document.getElementById('cpu-value');
     const memValue = document.getElementById('mem-value');
-    const cpuGraph = document.getElementById('cpu-graph');
-    const memGraph = document.getElementById('mem-graph');
     const note = document.getElementById('sys-note');
+    const osDetail = document.getElementById('sys-os');
+    const cpuDetail = document.getElementById('cpu-detail');
+    const coresEl = document.getElementById('cpu-cores');
     const picker = document.getElementById('color-picker');
 
     const hasApi = typeof chrome !== 'undefined' && chrome.system &&
@@ -22,39 +27,112 @@
         return;
     }
 
-    const cpuHist = [];
-    const memHist = [];
-    let prevCpu = null;
+    // target: 最新の計測値(%)、shown: 描画中の値、cols: 横1pxごとの値
+    const graphs = {
+        cpu: { canvas: document.getElementById('cpu-graph'), target: null, shown: null, cols: null },
+        mem: { canvas: document.getElementById('mem-graph'), target: null, shown: null, cols: null },
+    };
+    let prevCpu = null;    // 前回のコアごとの累積値 [{ total, idle }]
+    let coreFills = [];
+    let lastText = 0;
+    let lastCol = null;
+    let color = '#00eaff';
 
     const getCpu = () => new Promise(resolve => chrome.system.cpu.getInfo(resolve));
     const getMem = () => new Promise(resolve => chrome.system.memory.getInfo(resolve));
 
-    function pushHistory(arr, value) {
-        arr.push(value);
-        if (arr.length > HISTORY) arr.shift();
+    // ---------- OS・CPUの詳細 ----------
+    // "AMD Ryzen 7 5800X 8-Core Processor" → "Ryzen 7 5800X" のように短くする（正式名はツールチップに出す）
+    function shortCpuName(name) {
+        return name
+            .replace(/\((R|TM)\)/gi, '')
+            .replace(/\s+(w\/|with)\s+Radeon.*$/i, '') // 内蔵GPUの名前
+            .replace(/^\s*(\d+th Gen\s+)?(AMD|Intel)\s+/i, '')
+            .replace(/\s+@\s+[\d.]+\s*GHz/i, '')
+            .replace(/\b\d+-Core\b|\bProcessor\b|\bCPU\b/gi, '')
+            .replace(/\s+/g, ' ')
+            .trim();
     }
 
-    // ---------- グラフ描画（最新が右端） ----------
-    function drawGraph(canvas, data) {
+    async function showDetails(cpu) {
+        const name = shortCpuName(cpu.modelName || '');
+        cpuDetail.textContent = `${name} ${cpu.numOfProcessors}T`;
+        cpuDetail.title = `${cpu.modelName}（${cpu.archName} / ${cpu.numOfProcessors}スレッド）`;
+
+        // Windows 10 と 11 は UA の文字列では区別できないので platformVersion を見る（13以上が11）
+        let os = navigator.userAgentData?.platform || navigator.platform;
+        try {
+            const ua = await navigator.userAgentData.getHighEntropyValues(['platformVersion', 'architecture', 'bitness']);
+            const major = parseInt(ua.platformVersion, 10);
+            if (ua.platform === 'Windows' && major > 0) os = `Windows ${major >= 13 ? 11 : 10}`;
+            else if (ua.platformVersion) os = `${ua.platform} ${ua.platformVersion}`;
+            const arch = ua.architecture === 'arm' ? 'ARM' : ua.bitness === '64' ? 'x64' : 'x86';
+            os += ` (${arch})`;
+        } catch {
+            // userAgentData が無いブラウザでは platform のみ
+        }
+        osDetail.textContent = os;
+    }
+
+    // コアごとの横向きバー。横に最大8個ずつ並べる（16スレッドなら横8x縦2、12なら横6x縦2）
+    const CORE_COLUMNS = 8;
+    function setupCores(count) {
+        coresEl.style.gridTemplateColumns =
+            `repeat(${Math.min(CORE_COLUMNS, Math.ceil(count / 2))}, 1fr)`;
+        coreFills = Array.from({ length: count }, () => {
+            const core = document.createElement('div');
+            core.className = 'cpu-core';
+            const fill = document.createElement('div');
+            fill.className = 'cpu-core-fill';
+            fill.style.width = '0%';
+            core.appendChild(fill);
+            coresEl.appendChild(core);
+            return fill;
+        });
+    }
+
+    function readColor() {
+        color = getComputedStyle(document.documentElement)
+            .getPropertyValue('--main-color').trim() || '#00eaff';
+    }
+
+    // キャンバスのサイズが変わったら描画バッファを作り直す
+    function fitCanvas(graph) {
+        const { canvas } = graph;
         const dpr = window.devicePixelRatio || 1;
         const w = canvas.clientWidth;
         const h = canvas.clientHeight;
-        if (!w || !h) return;
+        if (!w || !h) return false;
         if (canvas.width !== Math.round(w * dpr) || canvas.height !== Math.round(h * dpr)) {
             canvas.width = Math.round(w * dpr);
             canvas.height = Math.round(h * dpr);
+            graph.cols = new Float32Array(Math.round(w)).fill(NaN);
+            lastCol = null;
         }
+        return true;
+    }
+
+    // ---------- 描画 ----------
+    function drawGraph(graph, head) {
+        const { canvas, cols } = graph;
+        const dpr = window.devicePixelRatio || 1;
+        const w = canvas.clientWidth;
+        const h = canvas.clientHeight;
         const g = canvas.getContext('2d');
         g.setTransform(dpr, 0, 0, dpr, 0, 0);
         g.clearRect(0, 0, w, h);
 
-        const color = getComputedStyle(document.documentElement)
-            .getPropertyValue('--main-color').trim() || '#00eaff';
+        // 方眼（心電図の記録紙）
+        g.strokeStyle = color;
+        g.lineWidth = 1;
+        g.globalAlpha = 0.08;
+        g.beginPath();
+        for (let x = 10.5; x < w; x += 10) { g.moveTo(x, 0); g.lineTo(x, h); }
+        for (let y = h - 10.5; y > 0; y -= 10) { g.moveTo(0, y); g.lineTo(w, y); }
+        g.stroke();
 
         // 50% の目安線
-        g.strokeStyle = color;
         g.globalAlpha = 0.25;
-        g.lineWidth = 1;
         g.setLineDash([2, 3]);
         g.beginPath();
         g.moveTo(0, h / 2);
@@ -62,35 +140,74 @@
         g.stroke();
         g.setLineDash([]);
 
-        if (data.length < 2) { g.globalAlpha = 1; return; }
+        const toY = v => h - (Math.min(100, Math.max(0, v)) / 100) * (h - 4) - 2;
+        const n = cols.length;
 
-        const step = w / (HISTORY - 1);
-        const pts = data.map((v, i) => [
-            w - (data.length - 1 - i) * step,
-            h - (Math.min(100, Math.max(0, v)) / 100) * (h - 2) - 1
-        ]);
-
-        // 塗りつぶし
-        g.beginPath();
-        g.moveTo(pts[0][0], h);
-        pts.forEach(([x, y]) => g.lineTo(x, y));
-        g.lineTo(pts[pts.length - 1][0], h);
-        g.closePath();
-        g.fillStyle = color;
-        g.globalAlpha = 0.22;
-        g.fill();
-
-        // 折れ線
-        g.beginPath();
-        pts.forEach(([x, y], i) => (i === 0 ? g.moveTo(x, y) : g.lineTo(x, y)));
-        g.globalAlpha = 1;
+        // 波形：描画位置から遠い（古い）ほど薄くする。数pxずつまとめて描く
         g.lineWidth = 1.5;
-        g.stroke();
+        g.lineJoin = 'round';
+        g.shadowColor = color;
+        g.shadowBlur = 6;
+        // age: 描画位置から何px後ろ（＝左、折り返しあり）の列か。古い方から新しい方へたどる
+        const CHUNK = 6;
+        for (let age = n - 1; age >= 0; age -= CHUNK) {
+            g.beginPath();
+            let started = false;
+            for (let a = age; a >= Math.max(age - CHUNK, 0); a--) {
+                const x = (head - a + n) % n;
+                const v = cols[x];
+                // まだ値のない列（消去部分を含む）や、右端→左端の折り返しでは線をつなげない
+                if (Number.isNaN(v)) { started = false; continue; }
+                if (started && x === 0) started = false;
+                if (started) g.lineTo(x, toY(v)); else { g.moveTo(x, toY(v)); started = true; }
+            }
+            g.globalAlpha = 1 - (age / n) * 0.8;
+            g.stroke();
+        }
+
+        // 描画位置の光る点
+        const v = cols[head];
+        if (!Number.isNaN(v)) {
+            g.globalAlpha = 1;
+            g.shadowBlur = 12;
+            g.fillStyle = color;
+            g.beginPath();
+            g.arc(head, toY(v), 2.5, 0, Math.PI * 2);
+            g.fill();
+        }
+        g.shadowBlur = 0;
+        g.globalAlpha = 1;
     }
 
-    function drawAll() {
-        drawGraph(cpuGraph, cpuHist);
-        drawGraph(memGraph, memHist);
+    function frame(now) {
+        requestAnimationFrame(frame);
+        const list = Object.values(graphs);
+        if (!list.every(fitCanvas)) return;
+
+        const n = list[0].cols.length;
+        const col = Math.floor(((now % SWEEP_MS) / SWEEP_MS) * n);
+        if (lastCol === null) lastCol = col;
+
+        // 前のフレームから進んだ列に値を書き込む（右端まで行ったら左端へ）
+        const steps = (col - lastCol + n) % n;
+        list.forEach(graph => {
+            if (graph.target === null) return;
+            for (let i = 1; i <= steps; i++) {
+                const x = (lastCol + i) % n;
+                graph.shown += (graph.target - graph.shown) * EASE;
+                graph.cols[x] = graph.shown;
+                // 描画位置の先は消しておく（心電図の消去バー）
+                graph.cols[(x + GAP_PX) % n] = NaN;
+            }
+        });
+        lastCol = col;
+
+        list.forEach(graph => drawGraph(graph, col));
+    }
+
+    function setTarget(graph, value) {
+        if (graph.shown === null) graph.shown = value;
+        graph.target = value;
     }
 
     // ---------- 計測 ----------
@@ -100,41 +217,54 @@
         try {
             const [cpu, mem] = await Promise.all([getCpu(), getMem()]);
             if (!cpu || !cpu.processors || !mem) throw new Error('no data');
+            const updateText = performance.now() - lastText >= TEXT_MS;
+            if (updateText) lastText = performance.now();
 
             // CPU: usage は起動からの累積値なので、前回との差分から使用率を出す
-            let total = 0;
-            let idle = 0;
-            cpu.processors.forEach(p => {
-                total += p.usage.total;
-                idle += p.usage.idle;
-            });
-            if (prevCpu && total > prevCpu.total) {
-                const usage = (1 - (idle - prevCpu.idle) / (total - prevCpu.total)) * 100;
-                pushHistory(cpuHist, usage);
-                cpuValue.textContent = `${Math.round(usage)}%`;
+            const now = cpu.processors.map(p => ({ total: p.usage.total, idle: p.usage.idle }));
+            if (!prevCpu) {
+                showDetails(cpu);
+                setupCores(now.length);
+            } else {
+                let total = 0;
+                let idle = 0;
+                now.forEach((c, i) => {
+                    const dTotal = c.total - prevCpu[i].total;
+                    const dIdle = c.idle - prevCpu[i].idle;
+                    total += dTotal;
+                    idle += dIdle;
+                    if (dTotal > 0) coreFills[i].style.width = `${(1 - dIdle / dTotal) * 100}%`;
+                });
+                if (total > 0) {
+                    const usage = (1 - idle / total) * 100;
+                    setTarget(graphs.cpu, usage);
+                    if (updateText) cpuValue.textContent = `${Math.round(usage)}%`;
+                }
             }
-            prevCpu = { total, idle };
+            prevCpu = now;
 
             // メモリ
             const used = mem.capacity - mem.availableCapacity;
             const percent = (used / mem.capacity) * 100;
             const GB = 1024 ** 3;
-            pushHistory(memHist, percent);
-            memValue.textContent =
-                `${(used / GB).toFixed(1)} / ${(mem.capacity / GB).toFixed(1)} GB (${Math.round(percent)}%)`;
+            setTarget(graphs.mem, percent);
+            if (updateText) {
+                memValue.textContent =
+                    `${(used / GB).toFixed(1)} / ${(mem.capacity / GB).toFixed(1)} GB (${Math.round(percent)}%)`;
+            }
 
             note.textContent = '';
-            drawAll();
         } catch (e) {
             console.error('System monitor error:', e);
             note.textContent = '取得エラー';
         }
     }
 
-    // テーマカラー変更・画面サイズ変更で再描画
-    if (picker) picker.addEventListener('input', drawAll);
-    window.addEventListener('resize', drawAll);
+    // テーマカラーが変わったら線の色も変える
+    if (picker) picker.addEventListener('input', readColor);
 
+    readColor();
     sample();
     setInterval(sample, SAMPLE_MS);
+    requestAnimationFrame(frame);
 })();

@@ -148,10 +148,20 @@ let sliderValue = 0.5;
 const slider = document.getElementById('bg-opacity');
 const display = document.getElementById('valDisplay');
 
+// 前回の値を復元
+const OPACITY_KEY = 'bg-opacity';
+const savedOpacity = Number(localStorage.getItem(OPACITY_KEY));
+if (localStorage.getItem(OPACITY_KEY) !== null && savedOpacity >= 0 && savedOpacity <= 1) {
+    sliderValue = savedOpacity;
+    slider.value = savedOpacity;
+    display.textContent = savedOpacity;
+}
+
 // 入力イベントを監視
 slider.addEventListener('input', (e) => {
     sliderValue = Number(e.target.value);
     display.textContent = sliderValue;
+    localStorage.setItem(OPACITY_KEY, sliderValue);
 });
 
 const saveCurrentTime = () => {
