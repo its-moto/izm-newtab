@@ -158,8 +158,29 @@
         </div>
     </div>
 
-    <div id="version-info">Version 1.1.2</div>
+    <div id="version-info">Version --</div>
     <div id="update-status"></div>
+
+    <div id="update-panel" class="update-card" hidden>
+        <div class="update-head"><span>アップデート</span><span id="update-versions"></span></div>
+        <ul id="update-changes"></ul>
+        <ol class="update-steps">
+            <li>拡張機能のフォルダーにある <b>update.bat</b> をダブルクリック
+                <div class="update-note">最新版をダウンロードして、今のフォルダーに上書きします（設定はそのまま）</div>
+            </li>
+            <li><button id="update-reload-btn">拡張機能を再読み込み</button></li>
+        </ol>
+        <div class="update-note">
+            うまくいかないときは <button id="update-download-btn">ZIPをダウンロード</button> して展開し、
+            中のファイルを今使っているフォルダーに上書きしてください（別の場所に置くと時間割・背景などの設定が引き継がれません）
+        </div>
+        <button id="update-close-btn">閉じる</button>
+    </div>
+
+    <div id="updated-toast" class="update-card" hidden>
+        <div class="update-head"><span id="updated-title"></span></div>
+        <ul id="updated-changes"></ul>
+    </div>
 
     <div id="hoge" style="position: absolute; top: 1200px;width: 100vh;height: 10px;"></div>
 

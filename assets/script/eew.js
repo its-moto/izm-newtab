@@ -151,8 +151,8 @@ function renderEew() {
     appendEewItem(`${formatEewTime(parseJst(eew.OriginTime), true)} 発生`,
       `緊急地震速報（${kind}） ${serial}${tags.length ? ` ${tags.join('・')}` : ''}`, [
         ['場所', eew.Hypocenter],
-        ['震度', `${formatIntensity(eew.MaxIntensity)}（予測）`],
         ['M', eew.Magnitude ?? eew.Magunitude],
+        ['震度', `${formatIntensity(eew.MaxIntensity)}（予測）`],
         ['深さ', `${eew.Depth}km`],
       ], 'current');
   }
@@ -161,8 +161,8 @@ function renderEew() {
     const origin = originTimes.get(q.json);
     appendEewItem(`${formatEewTime(origin ?? q.time)} ${origin ? '発生' : '検知'}`, null, [
       ['場所', q.place || '調査中'],
-      ['震度', formatIntensity(q.maxi)],
       ['M', q.mag || '不明'],
+      ['震度', formatIntensity(q.maxi)],
       ['深さ', formatDepth(q.cod)],
     ], '');
   });
