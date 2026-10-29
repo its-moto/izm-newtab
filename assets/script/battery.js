@@ -58,7 +58,7 @@ function describeBatteryTime(battery, data) {
     const apiSec = battery.charging ? battery.chargingTime : battery.dischargingTime;
     const prefix = battery.charging ? "満充電まで" : "残り";
     if (Number.isFinite(apiSec)) return `${prefix}${formatDuration(apiSec)}`;
-
+    
     const est = estimateSeconds(battery, data);
     if (est !== null) return `${prefix}約${formatDuration(est)}`;
     return battery.charging ? "充電速度を計測中..." : "減り方を計測中...";

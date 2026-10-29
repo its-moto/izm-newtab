@@ -96,16 +96,26 @@
             .getPropertyValue('--main-color').trim() || '#00eaff';
     }
 
-    // キャンバスのサイズが変わったら描画バッファを作り直す
+    // 描画の解像度。2本指で拡大（ピンチズーム）しても devicePixelRatio は変わらないので、
+    // ふだんから2倍で描き、拡大されたらその倍率に合わせる（最大4倍）
+    function pixelScale() {
+        const pinch = window.visualViewport?.scale || 1;
+        return (window.devicePixelRatio || 1) * Math.min(4, Math.max(2, pinch));
+    }
+
+    // キャンバスのサイズや倍率が変わったら描画バッファを作り直す
     function fitCanvas(graph) {
         const { canvas } = graph;
-        const dpr = window.devicePixelRatio || 1;
+        const scale = pixelScale();
         const w = canvas.clientWidth;
         const h = canvas.clientHeight;
         if (!w || !h) return false;
-        if (canvas.width !== Math.round(w * dpr) || canvas.height !== Math.round(h * dpr)) {
-            canvas.width = Math.round(w * dpr);
-            canvas.height = Math.round(h * dpr);
+        if (canvas.width !== Math.round(w * scale) || canvas.height !== Math.round(h * scale)) {
+            canvas.width = Math.round(w * scale);
+            canvas.height = Math.round(h * scale);
+        }
+        // 波形のデータは幅が変わったときだけ作り直す（倍率が変わっても消さない）
+        if (graph.cols?.length !== Math.round(w)) {
             graph.cols = new Float32Array(Math.round(w)).fill(NaN);
             lastCol = null;
         }
@@ -115,7 +125,7 @@
     // ---------- 描画 ----------
     function drawGraph(graph, head) {
         const { canvas, cols } = graph;
-        const dpr = window.devicePixelRatio || 1;
+        const dpr = canvas.width / canvas.clientWidth;
         const w = canvas.clientWidth;
         const h = canvas.clientHeight;
         const g = canvas.getContext('2d');
