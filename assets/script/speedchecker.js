@@ -17,6 +17,7 @@ const chartEl = document.getElementById('speed-chart');
 const statsEl = document.getElementById('speed-stats');
 const statusEl = document.getElementById('speed-display'); // 計測中の進捗表示
 const runBtn = document.getElementById('speed-run-btn');
+const clearBtn = document.getElementById('speed-clear-btn');
 
 // ---------- 履歴の保存・読み込み ----------
 function loadHistory() {
@@ -35,6 +36,12 @@ function pushHistory(entry) {
   const history = loadHistory();
   history.push(entry);
   localStorage.setItem(SPEED_STORAGE_KEY, JSON.stringify(history.slice(-HISTORY_MAX)));
+}
+
+function clearHistory() {
+  if (!confirm('回線速度の記録をすべて消去しますか？')) return;
+  localStorage.removeItem(SPEED_STORAGE_KEY);
+  renderSpeed();
 }
 
 // ---------- 表示 ----------
@@ -95,6 +102,7 @@ function renderSpeed() {
 
 function setRunning(running) {
   runBtn.disabled = running;
+  clearBtn.disabled = running;
   runBtn.textContent = running ? '計測中...' : '↻ 再計測';
 }
 
@@ -262,6 +270,7 @@ function sleep(ms) {
 
 // ---------- 起動時の処理 ----------
 runBtn.addEventListener('click', measureSpeedPrecise);
+clearBtn.addEventListener('click', clearHistory);
 
 renderSpeed();
 setInterval(() => { if (!isTestRunning) renderSpeed(); }, 30000); // 「○分前」を更新

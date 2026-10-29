@@ -305,8 +305,10 @@ td {
     position: absolute;
     top: 40px;
     right: 80px;
-    width: 70px;
     height: 25px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
     border: solid 3px var(--main-color);
     background-color: rgba(0, 0, 0, 0.5);
     padding: 10px;
@@ -314,13 +316,18 @@ td {
 }
 
 #video-selector-txt {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
     white-space: nowrap;
     cursor: pointer;
-    align-items: center;
+}
+
+#bg-delete-btn {
+    background: transparent;
+    border: none;
+    padding: 0;
+    color: inherit;
+    font: inherit;
+    white-space: nowrap;
+    cursor: pointer;
 }
 
 #version-info {
@@ -345,6 +352,8 @@ td {
     left: 50%;
     transform: translate(-50%, 0);
     width: 600px;
+    height: 200px;
+    overflow: hidden;
     padding: 15px;
     background-color: rgba(0, 0, 0, 0.5);
     border: solid 3px var(--main-color);
@@ -721,9 +730,15 @@ td.today:not(.period-num) {
     opacity: 0.85;
 }
 
-#speed-run-btn {
-    width: 100%;
+#speed-actions {
+    display: flex;
+    gap: 6px;
     margin-top: 6px;
+}
+
+#speed-run-btn,
+#speed-clear-btn {
+    flex: 1;
     background: transparent;
     border: 1px solid var(--main-color);
     color: var(--main-color);
@@ -734,12 +749,14 @@ td.today:not(.period-num) {
     transition: 0.2s;
 }
 
-#speed-run-btn:hover:not(:disabled) {
+#speed-run-btn:hover:not(:disabled),
+#speed-clear-btn:hover:not(:disabled) {
     background: var(--main-color);
     color: black;
 }
 
-#speed-run-btn:disabled {
+#speed-run-btn:disabled,
+#speed-clear-btn:disabled {
     opacity: 0.4;
     cursor: wait;
 }

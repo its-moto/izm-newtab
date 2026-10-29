@@ -44,6 +44,21 @@ selector.addEventListener('change', (e) => {
     transaction.oncomplete = () => location.reload(); // 保存したら再読み込みして適用
 });
 
+// 背景を削除
+document.getElementById('bg-delete-btn').addEventListener('click', () => {
+    if (!db || !confirm('背景を削除しますか？')) return;
+
+    video.pause(); // 再読み込み前に再生位置が保存し直されないようにする
+
+    const transaction = db.transaction(STORE_NAME, "readwrite");
+    const store = transaction.objectStore(STORE_NAME);
+    store.delete(MEDIA_KEY);
+    store.delete(LEGACY_KEY);
+    store.delete("lastTime");
+
+    transaction.oncomplete = () => location.reload();
+});
+
 function fadeInPage() {
     document.body.style.animation = "fadeIn 0.8s ease-in-out forwards";
 }
