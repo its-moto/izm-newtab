@@ -29,14 +29,21 @@
         <div id="battery-cover"></div>
     </div>
 
-    <div id="color-picker-box">
-        <label for="color-picker">テーマカラー:</label>
-        <input type="color" id="color-picker" value="#00eaff">
-    </div>
-
-    <div id="bg-opacity-control">
-        <label for="bg-opacity">背景の不透明度:<span id="valDisplay">0.5</span></label><br>
-        <input type="range" id="bg-opacity" min="0" max="1" step="0.1" value="0.5">
+    <div id="theme-box">
+        <div class="theme-row">
+            <label for="color-picker">テーマカラー</label>
+            <input type="color" id="color-picker" value="#00eaff">
+        </div>
+        <div class="theme-row" title="パネルの背景色。スライダーで濃さを変えられます">
+            <label for="sub-color-picker">サブカラー</label>
+            <input type="range" id="sub-alpha" class="theme-range" min="0" max="1" step="0.05" value="0.5">
+            <input type="color" id="sub-color-picker" value="#000000">
+        </div>
+        <div class="theme-row">
+            <label for="bg-opacity">背景の不透明度</label>
+            <span id="valDisplay">0.5</span>
+        </div>
+        <input type="range" id="bg-opacity" class="theme-range" min="0" max="1" step="0.1" value="0.5">
     </div>
 
     <div id="shortcut-box"></div>
@@ -133,6 +140,16 @@
 
     <video id="bg-video" loop muted playsinline style="display:none;"></video>
     <div id="setup-ui">
+        <div id="bg-volume" hidden>
+            <button id="bg-mute-btn" title="ミュート切替（Ctrl+Alt+Shift+M）">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">
+                    <path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor" />
+                    <path class="vol-on" d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12" />
+                    <path class="vol-off" d="M16 9l6 6M22 9l-6 6" />
+                </svg>
+            </button>
+            <input type="range" id="bg-volume-slider" class="theme-range" min="0" max="1" step="0.05" value="0.5">
+        </div>
         <input type="file" id="video-selector" accept="video/*,image/*" hidden>
         <label for="video-selector" class="custom-file-button" id="video-selector-txt">
             背景を選択

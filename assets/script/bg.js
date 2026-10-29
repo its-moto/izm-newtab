@@ -89,9 +89,9 @@ async function loadStoredBackground() {
     } else {
         video.src = URL.createObjectURL(mediaBlob);
         video.currentTime = lastTime;
-        video.play().catch(() => {
-            window.addEventListener('click', () => video.play(), { once: true });
-        });
+        volumeBox.hidden = false; // 動画のときだけ音量を出す
+        applyVolume();
+        startVideo();
         requestAnimationFrame(draw);
     }
 }
@@ -149,8 +149,8 @@ const slider = document.getElementById('bg-opacity');
 const display = document.getElementById('valDisplay');
 
 // スライダーの塗りつぶし位置（CSS の --val）
-function paintSlider() {
-    slider.style.setProperty('--val', `${slider.value * 100}%`);
+function paintSlider(el = slider) {
+    el.style.setProperty('--val', `${el.value * 100}%`);
 }
 
 // 前回の値を復元
@@ -170,6 +170,65 @@ slider.addEventListener('input', (e) => {
     paintSlider();
 });
 paintSlider();
+
+// ---------- 動画の音量 ----------
+const volumeBox = document.getElementById('bg-volume');
+const volumeSlider = document.getElementById('bg-volume-slider');
+const muteBtn = document.getElementById('bg-mute-btn');
+const VOLUME_KEY = 'bg-volume';
+
+// 音量は覚えておくが、開いたときは毎回ミュートから始める
+const savedVolume = Number(localStorage.getItem(VOLUME_KEY));
+let bgVolume = localStorage.getItem(VOLUME_KEY) !== null && savedVolume >= 0 && savedVolume <= 1 ? savedVolume : 0.5;
+let bgMuted = true;
+
+function applyVolume() {
+    video.volume = bgVolume;
+    video.muted = bgMuted;
+    volumeSlider.value = bgVolume;
+    volumeSlider.title = `音量 ${Math.round(bgVolume * 100)}%${bgMuted ? '（ミュート中）' : ''}`;
+    volumeBox.classList.toggle('muted', bgMuted);
+    paintSlider(volumeSlider);
+}
+
+function saveVolume() {
+    localStorage.setItem(VOLUME_KEY, bgVolume);
+    applyVolume();
+}
+
+// 音ありの自動再生はブラウザに止められることがあるので、そのときはミュートで再生して最初の操作で音を戻す
+function startVideo() {
+    video.play().catch(() => {
+        const resume = () => {
+            applyVolume();
+            video.play().catch(() => {});
+        };
+        if (!video.muted) {
+            video.muted = true;
+            video.play().catch(() => {});
+            window.addEventListener('pointerdown', resume, { once: true });
+            window.addEventListener('keydown', resume, { once: true });
+        } else {
+            window.addEventListener('click', resume, { once: true });
+        }
+    });
+}
+
+function toggleMute() {
+    bgMuted = !bgMuted;
+    if (!bgMuted && bgVolume === 0) bgVolume = 0.5; // 音量0のままミュート解除しても聞こえないので戻す
+    saveVolume();
+    if (!bgMuted && video.src && video.paused) video.play().catch(console.error);
+}
+
+// スライダーを動かしたら音ありにする（0まで下げたらミュート）
+volumeSlider.addEventListener('input', () => {
+    bgVolume = Number(volumeSlider.value);
+    bgMuted = bgVolume === 0;
+    saveVolume();
+});
+muteBtn.addEventListener('click', toggleMute);
+applyVolume();
 
 const saveCurrentTime = () => {
     // 動画のときだけ再生位置を保存
@@ -211,11 +270,6 @@ resize();
 // Ctrl + Alt + Shift + M でミュート切替（動画のときのみ意味あり）
 window.addEventListener('keydown', (e) => {
     if (e.ctrlKey && e.altKey && e.shiftKey && e.code === 'KeyM') {
-        video.muted = !video.muted;
-        console.log(video.muted ? "Muted" : "Unmuted");
-
-        if (!video.muted && video.src) {
-            video.play().catch(console.error);
-        }
+        toggleMute();
     }
 });

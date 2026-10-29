@@ -1,5 +1,6 @@
 :root {
     --main-color: rgb(0, 234, 255);
+    --sub-color: rgba(0, 0, 0, 0.5); /* パネルの背景色（color.js で変更） */
 }
 
 @font-face {
@@ -41,7 +42,7 @@ body {
     font-size: 20px;
     top: 70px;
     color: var(--main-color);
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: var(--sub-color);
     font-family: inherit;
 }
 
@@ -57,7 +58,7 @@ body {
     left: 80px;
     padding: 20px;
     font-variant-numeric: tabular-nums;
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: var(--sub-color);
 }
 
 #date {
@@ -69,7 +70,7 @@ body {
 #battery-box {
     position: absolute;
     border: solid 3px var(--main-color);
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: var(--sub-color);
     left: 80px;
     top: 180px;
     height: auto;
@@ -181,7 +182,7 @@ body {
     /* 下は「編集」ボタン用の余白 */
     min-width: 140px;
 
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: var(--sub-color);
     border: solid 3px var(--main-color);
 }
 
@@ -216,39 +217,63 @@ body {
 
 /* 色選択のあれこれ */
 
-#color-picker-box {
+/* テーマカラー・サブカラー・背景の不透明度 */
+#theme-box {
     position: absolute;
     top: 280px;
     left: 80px;
+    width: 246px;
+    box-sizing: border-box;
     border: solid 3px var(--main-color);
-    background-color: rgba(0, 0, 0, 0.5);
-    padding: 5px;
-    font-size: 20px;
-}
-
-
-#bg-opacity-control {
-    position: absolute;
-    top: 350px;
-    left: 80px;
-    border: solid 3px var(--main-color);
-    background-color: rgba(0, 0, 0, 0.5);
-    padding: 5px;
+    background-color: var(--sub-color);
+    padding: 6px 10px;
     font-size: 18px;
 }
 
-/* 不透明度スライダー（--val は bg.js で 0〜100% を入れる） */
-#bg-opacity {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 100%;
-    height: 16px;
-    margin: 4px 0 0;
+.theme-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 30px;
+}
+
+.theme-row label {
+    margin-right: auto;
+    white-space: nowrap;
+}
+
+#sub-alpha {
+    flex: 1;
+    min-width: 0;
+}
+
+#theme-box input[type="color"] {
+    width: 34px;
+    height: 24px;
+    padding: 0;
+    border: 1px solid var(--main-color);
     background: transparent;
     cursor: pointer;
 }
 
-#bg-opacity::-webkit-slider-runnable-track {
+#theme-box input[type="color"]::-webkit-color-swatch-wrapper {
+    padding: 2px;
+}
+
+#theme-box input[type="color"]::-webkit-color-swatch {
+    border: none;
+}
+
+/* 不透明度・音量スライダー（--val は bg.js で 0〜100% を入れる） */
+.theme-range {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 16px;
+    background: transparent;
+    cursor: pointer;
+}
+
+.theme-range::-webkit-slider-runnable-track {
     height: 4px;
     background: linear-gradient(to right,
             var(--main-color) var(--val, 50%),
@@ -256,7 +281,7 @@ body {
     box-shadow: 0 0 4px color-mix(in srgb, var(--main-color) 60%, transparent);
 }
 
-#bg-opacity::-webkit-slider-thumb {
+.theme-range::-webkit-slider-thumb {
     -webkit-appearance: none;
     width: 10px;
     height: 16px;
@@ -267,13 +292,18 @@ body {
     transition: transform 0.15s;
 }
 
-#bg-opacity:hover::-webkit-slider-thumb,
-#bg-opacity:active::-webkit-slider-thumb {
+.theme-range:hover::-webkit-slider-thumb,
+.theme-range:active::-webkit-slider-thumb {
     transform: scaleY(1.25);
 }
 
-#bg-opacity:focus {
+.theme-range:focus {
     outline: none;
+}
+
+#bg-opacity {
+    width: 100%;
+    margin: 4px 0 0;
 }
 
 /* タイムテーブルのスタイル */
@@ -286,7 +316,7 @@ body {
     /* 検索ボックスの下に配置 */
     left: 50%;
     transform: translateX(-50%);
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: var(--sub-color);
     border: solid 3px var(--main-color);
     padding: 15px;
     color: var(--main-color);
@@ -405,7 +435,7 @@ td {
     align-items: center;
     gap: 14px;
     border: solid 3px var(--main-color);
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: var(--sub-color);
     padding: 10px;
     font-family: inherit;
 }
@@ -413,6 +443,52 @@ td {
 #video-selector-txt {
     white-space: nowrap;
     cursor: pointer;
+}
+
+/* 動画の音量（背景が動画のときだけ表示。検索ボックスにかぶらないよう小さめ） */
+#bg-volume {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding-right: 12px;
+    border-right: 1px solid var(--main-color);
+}
+
+#bg-volume[hidden] {
+    display: none;
+}
+
+#bg-mute-btn {
+    display: flex;
+    align-items: center;
+    background: transparent;
+    border: none;
+    color: var(--main-color);
+    padding: 0;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+#bg-mute-btn:hover {
+    filter: drop-shadow(0 0 4px var(--main-color));
+}
+
+#bg-mute-btn .vol-off,
+#bg-volume.muted #bg-mute-btn .vol-on {
+    display: none;
+}
+
+#bg-volume.muted #bg-mute-btn .vol-off {
+    display: inline;
+}
+
+#bg-volume-slider {
+    width: 70px;
+}
+
+#bg-volume.muted #bg-volume-slider {
+    filter: grayscale(1);
+    opacity: 0.5;
 }
 
 #bg-delete-btn {
@@ -545,7 +621,7 @@ td {
     height: 200px;
     overflow: hidden;
     padding: 15px;
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: var(--sub-color);
     border: solid 3px var(--main-color);
 }
 
@@ -629,7 +705,7 @@ td {
     right: 80px;
     width: 240px;
     padding: 10px;
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: var(--sub-color);
     border: solid 3px var(--main-color);
     outline: none;
 }
@@ -906,7 +982,7 @@ td.today:not(.period-num) {
     width: 246px;
     box-sizing: border-box;
     padding: 10px;
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: var(--sub-color);
     border: solid 3px var(--main-color);
 }
 
@@ -1044,7 +1120,7 @@ td.today:not(.period-num) {
     width: 266px;
     box-sizing: border-box;
     padding: 10px;
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: var(--sub-color);
     border: solid 3px var(--main-color);
 }
 
@@ -1129,7 +1205,7 @@ td.today:not(.period-num) {
     width: 266px;
     box-sizing: border-box;
     padding: 10px;
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: var(--sub-color);
     border: solid 3px var(--main-color);
 }
 
@@ -1214,7 +1290,7 @@ td.today:not(.period-num) {
     transform: translate(-50%, 0);
     width: 600px;
     padding: 10px 15px;
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: var(--sub-color);
     border: solid 3px var(--main-color);
 }
 
