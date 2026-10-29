@@ -107,4 +107,5 @@ function initWeather() {
     }
 
     updateWeather();
+    initWarnings(WEATHER_CONFIG.LAT, WEATHER_CONFIG.LON); // warning.js
 }

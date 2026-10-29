@@ -372,6 +372,56 @@ td {
     /* Chrome, Safari用 */
 }
 
+/* 現在地の警報・注意報（天気の右側） */
+#warning-box {
+    margin-left: auto;
+    max-width: 360px;
+    text-align: right;
+}
+
+#warning-area {
+    font-size: 12px;
+    opacity: 0.7;
+    margin-bottom: 3px;
+}
+
+#warning-list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 4px;
+}
+
+#warning-list.none {
+    font-size: 14px;
+    opacity: 0.7;
+}
+
+.warning-badge {
+    padding: 1px 6px;
+    border-radius: 2px;
+    color: white;
+    font-size: 14px;
+    white-space: nowrap;
+}
+
+.warning-badge.advisory {
+    background-color: #e0a800;
+}
+
+.warning-badge.warning {
+    background-color: #e02020;
+}
+
+.warning-badge.danger {
+    background-color: #a020c0;
+}
+
+.warning-badge.special {
+    background-color: #1a1a1a;
+    outline: 1px solid white;
+}
+
 /* 予報の各アイテムのスタイル */
 .hour-item {
     flex: 0 0 auto;
