@@ -85,7 +85,7 @@
             <span>地震情報</span>
             <label>最大震度
                 <select id="eew-filter">
-                    <option value="0">すべて</option>
+                    <option value="0" title="震度が出ていない地震（震源に関する情報など）も表示">不明も含む</option>
                     <option value="1">1以上</option>
                     <option value="2">2以上</option>
                     <option value="3">3以上</option>
@@ -238,7 +238,18 @@
         </div>
     </div>
 
-    <div id="version-info">Version --</div>
+    <div id="memo-box">
+        <div id="memo-head">
+            <span id="memo-title">メモ</span>
+            <button id="memo-delete-btn" hidden>削除</button>
+            <button id="memo-edit-btn">編集</button>
+        </div>
+        <div id="memo-tabs"></div>
+        <div id="memo-view"></div>
+        <textarea id="memo-input" hidden spellcheck="false" placeholder="- [ ] やること&#10;[リンクの名前](https://...)"></textarea>
+    </div>
+
+    <a id="version-info" href="https://github.com/its-moto/izm-newtab" target="_blank" rel="noopener" title="GitHub のリポジトリを開く">Version --</a>
     <div id="update-status"></div>
 
     <div id="update-panel" class="update-card" hidden>
@@ -276,6 +287,7 @@
     <script src="assets/script/warning.js"></script>
     <script src="assets/script/weatherfx.js"></script>
     <script src="assets/script/events.js"></script>
+    <script src="assets/script/memo.js"></script>
     <script src="assets/script/viewmode.js"></script>
     <script src="assets/script/speedchecker.js"></script>
     <script src="assets/script/netinfo.js"></script>

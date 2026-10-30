@@ -1,7 +1,37 @@
 // バージョンは manifest.json の "version" だけで管理する
 // 更新内容は version.json の "message" に書く（GitHub の main にあるものを最新版として見る）
 const currentVersion = chrome.runtime?.getManifest?.()?.version;
-document.getElementById('version-info').textContent = `Version ${currentVersion || '--'}`;
+
+// 左下のバージョン表示（リポジトリへのリンク）。起動演出が終わったら1文字ずつタイプして出す
+const versionInfo = document.getElementById('version-info');
+const versionText = `Version ${currentVersion || '--'}`;
+let versionTimer = null;
+
+function typeVersion() {
+  clearInterval(versionTimer);
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    versionInfo.textContent = versionText;
+    return;
+  }
+  let i = 0;
+  versionInfo.textContent = '';
+  versionInfo.classList.add('typing');
+  versionTimer = setInterval(() => {
+    versionInfo.textContent = versionText.slice(0, ++i);
+    if (i >= versionText.length) {
+      clearInterval(versionTimer);
+      setTimeout(() => versionInfo.classList.remove('typing'), 1200); // 打ち終わったら少ししてカーソルを消す
+    }
+  }, 45);
+}
+
+Boot.whenShown(versionInfo).then(typeVersion);
+
+// 背景鑑賞モード（viewmode.js）から戻ったときも打ち直す
+new MutationObserver(records => {
+  const wasViewing = records.some(r => (r.oldValue || '').split(' ').includes('viewing'));
+  if (wasViewing && !document.documentElement.classList.contains('viewing')) setTimeout(typeVersion, 500);
+}).observe(document.documentElement, { attributes: true, attributeFilter: ['class'], attributeOldValue: true });
 
 const REPO_URL = 'https://github.com/its-moto/izm-newtab';
 const LATEST_JSON_URL = 'https://raw.githubusercontent.com/its-moto/izm-newtab/main/version.json';

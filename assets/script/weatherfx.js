@@ -53,7 +53,9 @@
                 y: anywhere ? Math.random() * H() : -20 - Math.random() * H() * 0.3,
                 len: (drizzle ? 6 : 12) + Math.random() * (drizzle ? 6 : 14),
                 speed,
-                alpha: (drizzle ? 0.15 : 0.22) + Math.random() * 0.15,
+                alpha: (drizzle ? 0.25 : 0.32) + Math.random() * 0.18,
+                // 強い雨ほど太く（霧雨は細め）
+                width: (drizzle ? 1.2 : 1.4 + effect.level * 0.45) + Math.random() * 0.6,
             };
         }
         if (type === 'snow') {
@@ -99,12 +101,13 @@
         if (type === 'rain' || type === 'thunder') {
             const wind = 0.18; // 少し斜めに降らせる
             g.strokeStyle = 'rgb(200, 220, 255)';
-            g.lineWidth = 1;
             particles.forEach((p, i) => {
                 p.y += p.speed;
                 p.x += p.speed * wind;
                 if (p.y > H() + 20) particles[i] = makeParticle(type, false);
                 g.globalAlpha = p.alpha;
+                g.lineWidth = p.width;
+                g.lineCap = 'round';
                 g.beginPath();
                 g.moveTo(p.x, p.y);
                 g.lineTo(p.x - p.len * wind, p.y - p.len);
@@ -175,14 +178,22 @@
         }
     }
 
-    window.addEventListener('weather-now', (e) => {
-        const next = effectOf(e.detail.code);
+    function apply(code) {
+        const next = effectOf(code);
         if (next.type !== effect.type || next.level !== effect.level) {
             effect = next;
             setupParticles();
         }
         update();
-    });
+    }
+    window.addEventListener('weather-now', e => apply(e.detail.code));
+
+    // 隠しコマンド：DevTools のコンソールで weatherFx(65) のように天気コードを入れると、その演出を試せる
+    // （61〜65: 雨 / 71〜75: 雪 / 95: 雷雨 / 45: 霧 / 0: なし。リロードで元の天気に戻る）
+    window.weatherFx = code => {
+        apply(Number(code));
+        return `${effect.type} (level ${effect.level})`;
+    };
 
     btn.addEventListener('click', () => {
         enabled = !enabled;

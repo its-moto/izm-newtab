@@ -556,6 +556,19 @@ td {
     bottom: 3px;
     left: 3px;
     font-size: 15px;
+    text-decoration: none;
+    transition: color 0.2s, text-shadow 0.2s;
+}
+
+#version-info:hover {
+    color: var(--main-color);
+    text-shadow: 0 0 6px var(--main-color);
+}
+
+/* タイプ中のカーソル */
+#version-info.typing::after {
+    content: '_';
+    animation: boot-caret 0.6s steps(1) infinite;
 }
 
 #update-status {
@@ -843,7 +856,7 @@ td {
 }
 
 /* 起動演出（boot.js）：立ち上がるまでパネルを隠しておく */
-html.booting :is(#clockbox, #battery-box, #theme-box, #speed-box, #searchbox, #shortcut-box,
+html.booting :is(#clockbox, #battery-box, #theme-box, #speed-box, #memo-box, #searchbox, #shortcut-box,
     #timetable-box, #weather-box, #eew-box, #setup-ui, #calc-box, #sys-box, #dl-box,
     #version-info, #update-status):not(.boot-shown) {
     visibility: hidden;
@@ -987,8 +1000,7 @@ html.booting :is(#clockbox, #battery-box, #theme-box, #speed-box, #searchbox, #s
 @keyframes boot-line-out {
     to {
         transform: scaleX(3);
-        filter: brightness(3);
-        box-shadow: 0 0 30px var(--main-color), 0 0 6px #fff;
+        filter: drop-shadow(0 0 10px var(--main-color)) drop-shadow(0 0 40px var(--main-color)) brightness(3);
     }
 }
 
@@ -1019,13 +1031,25 @@ html.booting :is(#clockbox, #battery-box, #theme-box, #speed-box, #searchbox, #s
 }
 
 /* 真ん中から左右へ伸びる光る線 */
+/* 真ん中が白く光る線。ゆっくり明るさが脈打つ */
 .boot-line {
-    width: min(640px, 70vw);
-    height: 2px;
-    background: var(--main-color);
-    box-shadow: 0 0 10px var(--main-color), 0 0 2px #fff;
-    animation: boot-line 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    position: relative;
+    width: min(680px, 74vw);
+    height: 3px;
+    background: linear-gradient(90deg, transparent, var(--main-color) 12%, #fff 50%, var(--main-color) 88%, transparent);
+    filter: drop-shadow(0 0 4px var(--main-color)) drop-shadow(0 0 12px var(--main-color));
+    animation:
+        boot-line 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both,
+        boot-line-glow 2.4s ease-in-out 0.45s infinite;
 }
+
+@keyframes boot-line-glow {
+    50% {
+        filter: drop-shadow(0 0 6px var(--main-color)) drop-shadow(0 0 22px var(--main-color)) brightness(1.3);
+    }
+}
+
+
 
 @keyframes boot-line {
     from {
@@ -1086,6 +1110,149 @@ html.booting :is(#clockbox, #battery-box, #theme-box, #speed-box, #searchbox, #s
     }
 }
 
+/* メモ（memo.js）。top は回線速度パネルの下に合わせる */
+#memo-box {
+    position: absolute;
+    top: 780px;
+    left: 80px;
+    width: 246px;
+    box-sizing: border-box;
+    padding: 8px 10px 10px;
+    background-color: var(--sub-color);
+    border: solid 3px var(--main-color);
+}
+
+#memo-head {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 4px;
+}
+
+#memo-title {
+    margin-right: auto;
+    font-size: 20px;
+}
+
+#memo-edit-btn,
+#memo-delete-btn {
+    background: transparent;
+    border: 1px solid var(--main-color);
+    color: var(--main-color);
+    font-family: inherit;
+    font-size: 12px;
+    padding: 0 8px;
+    cursor: pointer;
+}
+
+#memo-edit-btn:hover,
+#memo-delete-btn:hover {
+    background: var(--main-color);
+    color: black;
+}
+
+#memo-delete-btn[hidden] {
+    display: none;
+}
+
+#memo-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-bottom: 6px;
+}
+
+.memo-tab {
+    max-width: 90px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--main-color);
+    font-family: inherit;
+    font-size: 13px;
+    padding: 0 4px;
+    opacity: 0.55;
+    cursor: pointer;
+}
+
+.memo-tab.active {
+    opacity: 1;
+    border-bottom-color: var(--main-color);
+}
+
+.memo-tab:hover {
+    opacity: 1;
+}
+
+.memo-tab[contenteditable="true"] {
+    outline: 1px dashed var(--main-color);
+    text-overflow: clip;
+}
+
+#memo-view,
+#memo-input {
+    box-sizing: border-box;
+    width: 100%;
+    max-height: 200px;
+    font-family: inherit;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+#memo-view {
+    min-height: 60px;
+    overflow-y: auto;
+    overflow-wrap: anywhere;
+    cursor: text;
+    scrollbar-width: thin;
+}
+
+#memo-view[hidden],
+#memo-input[hidden] {
+    display: none;
+}
+
+#memo-view a {
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.memo-empty {
+    opacity: 0.45;
+    font-size: 13px;
+}
+
+.memo-task {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+}
+
+.memo-task input {
+    margin: 3px 0 0;
+    accent-color: var(--main-color);
+    cursor: pointer;
+}
+
+.memo-task.done span {
+    opacity: 0.45;
+    text-decoration: line-through;
+}
+
+#memo-input {
+    height: 180px;
+    resize: vertical;
+    padding: 4px 6px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--main-color);
+    color: var(--main-color);
+    outline: none;
+}
+
 /* 背景鑑賞モード（viewmode.js） */
 #view-mode-btn {
     display: flex;
@@ -1103,10 +1270,13 @@ html.booting :is(#clockbox, #battery-box, #theme-box, #speed-box, #searchbox, #s
     filter: drop-shadow(0 0 4px var(--main-color));
 }
 
-/* 閉じたパネルと、ページ下の小さな表示を隠す */
+/* 閉じたパネルと、ページ下の小さな表示を隠す
+   ボタンなどの transition: 0.2s で visibility まで遅れて切り替わらないよう、中身ごと即座に隠す */
 .view-hidden,
+.view-hidden *,
 html.viewing :is(#version-info, #update-status) {
-    visibility: hidden;
+    visibility: hidden !important;
+    transition: none !important;
 }
 
 #view-mode {
@@ -1280,6 +1450,20 @@ html.viewing :is(#version-info, #update-status) {
 
 .anim-close {
     animation: panel-close 0.24s cubic-bezier(0.5, 0, 0.75, 0) both;
+}
+
+/* 閉じるときは、中身（ボタンや文字）が先にサッと消えてから枠が縮む */
+.anim-close * {
+    animation: panel-content-out 0.14s ease-in both !important;
+    transition: none !important;
+}
+
+@keyframes panel-content-out {
+    to {
+        opacity: 0;
+        transform: translateY(-4px) scale(0.96);
+        filter: brightness(2);
+    }
 }
 
 @keyframes panel-open {

@@ -242,9 +242,8 @@
         if (closing) return;
         closing = true;
         modal.classList.add('closing');
-        await Modal.animate(dialog, 'anim-close');
+        await Modal.animate(dialog, 'anim-close', () => { modal.hidden = true; });
         modal.classList.remove('closing');
-        modal.hidden = true;
         closing = false;
     }
 

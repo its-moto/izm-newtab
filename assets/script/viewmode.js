@@ -57,6 +57,13 @@
             return sep && ['QUAKE', english(`latest ${sep.textContent.trim()}`)];
         },
         () => ['TIME', `${new Date().toLocaleDateString('ja-JP')}  uptime ${Math.floor(performance.now() / 60000)}m`],
+        () => {
+            // メモのチェックリスト（memo.js）。中身は日本語なので数だけ出す
+            if (typeof Memo === 'undefined') return null;
+            const { open, done } = Memo.taskCounts();
+            if (open + done === 0) return null;
+            return ['TODO', open > 0 ? `${open} task${open > 1 ? 's' : ''} remaining  (${done} done)` : 'all tasks done'];
+        },
     ];
     const DUMMY = [
         () => ['SCAN', `sector ${rnd(1, 9)}${pick('ABCDEFG')} ... clear`],

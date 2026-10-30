@@ -19,10 +19,14 @@ const Modal = (() => {
     }
 
     // cls（anim-open / anim-close）のアニメーションを付けて、終わったら外す
-    function animate(el, cls) {
+    // atEnd: クラスを外す前に呼ぶ（閉じたあと隠す処理をここでやると、一瞬だけ元の姿が見えるのを防げる）
+    function animate(el, cls, atEnd = () => {}) {
         return new Promise(resolve => {
             el.classList.remove('anim-open', 'anim-close');
-            if (reduceMotion.matches) return resolve();
+            if (reduceMotion.matches) {
+                atEnd();
+                return resolve();
+            }
             void el.offsetWidth; // 続けて開閉してもアニメーションが最初から動くように
             el.classList.add(cls);
             let finished = false;
@@ -30,6 +34,7 @@ const Modal = (() => {
                 if (finished) return;
                 finished = true;
                 el.removeEventListener('animationend', onEnd);
+                atEnd();
                 el.classList.remove(cls);
                 resolve();
             };
@@ -48,9 +53,8 @@ const Modal = (() => {
         },
         async close(panel) {
             backdrop.classList.add('closing');
-            await animate(panel, 'anim-close');
+            await animate(panel, 'anim-close', () => { panel.hidden = true; });
             backdrop.classList.remove('closing');
-            panel.hidden = true;
             opened.delete(panel);
             lockBackground();
         },
