@@ -22,5 +22,9 @@
     "system.cpu",
     "system.memory",
     "downloads"
+  ],
+  "host_permissions": [
+    "http://localhost/*",
+    "http://127.0.0.1/*"
   ]
 }

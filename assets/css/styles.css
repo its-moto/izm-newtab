@@ -779,13 +779,27 @@ td {
 }
 
 /* 関数電卓（小さい電卓の fx から開く） */
-#sci-box {
+/* 大きいパネルの後ろの暗幕（modal.js。開いている間は後ろを触れなくする） */
+#modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 25;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(2px);
+    animation: fadeIn 0.2s ease-out;
+}
+
+#modal-backdrop[hidden] {
+    display: none;
+}
+
+/* 関数電卓・ハードウェア詳細の共通の枠 */
+.modal-panel {
     position: fixed;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     z-index: 30;
-    width: 680px;
     max-width: calc(100vw - 32px);
     max-height: calc(100vh - 32px);
     overflow-x: hidden;
@@ -798,8 +812,23 @@ td {
     color: var(--main-color);
 }
 
-#sci-box[hidden] {
+.modal-panel[hidden] {
     display: none;
+}
+
+#sci-box {
+    width: 680px;
+}
+
+.modal-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.modal-title {
+    font-size: 22px;
 }
 
 #sci-head {
@@ -1403,6 +1432,230 @@ td.today:not(.period-num) {
 #sys-note:empty {
     display: none;
 }
+/* 温度などの詳細（hwmon.js。LibreHardwareMonitor が必要） */
+#hw-toggle-btn {
+    align-self: center;
+    background: transparent;
+    border: 1px solid var(--main-color);
+    color: var(--main-color);
+    font-family: inherit;
+    font-size: 12px;
+    padding: 0 5px;
+    white-space: nowrap;
+    cursor: pointer;
+    opacity: 0.6;
+    transition: 0.15s;
+}
+
+#hw-toggle-btn.connected {
+    opacity: 1;
+}
+
+#hw-toggle-btn:hover {
+    opacity: 1;
+    background: var(--main-color);
+    color: black;
+}
+
+/* ツールに接続できているときは小さな点を付ける */
+#hw-toggle-btn.connected::before {
+    content: '● ';
+    font-size: 9px;
+    vertical-align: middle;
+}
+
+#hw-box {
+    width: 760px;
+    font-size: 15px;
+}
+
+#hw-status {
+    margin-left: auto;
+    font-size: 13px;
+    opacity: 0.6;
+}
+
+#hw-status.connected {
+    opacity: 1;
+}
+
+#hw-box [hidden] {
+    display: none;
+}
+
+/* グラフのカード（chart.js / hwmon.js） */
+#hw-charts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.hw-chart {
+    padding: 6px 8px 8px;
+    border: 1px solid color-mix(in srgb, var(--main-color) 35%, transparent);
+    background: color-mix(in srgb, var(--main-color) 5%, transparent);
+}
+
+.hw-chart-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 4px;
+    font-size: 13px;
+}
+
+.hw-chart-value {
+    font-size: 15px;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.hw-chart canvas {
+    display: block;
+    width: 100%;
+    height: 80px;
+}
+
+.hw-cores {
+    grid-column: 1 / -1;
+}
+
+.hw-cores canvas {
+    height: 60px;
+}
+
+#hw-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+    gap: 18px;
+    margin-bottom: 14px;
+}
+
+#hw-summary:empty {
+    display: none;
+}
+
+.hw-temp {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: baseline;
+    gap: 0 6px;
+}
+
+.hw-temp-label {
+    font-size: 15px;
+    opacity: 0.7;
+}
+
+.hw-temp-value {
+    font-size: 40px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+.hw-temp-bar {
+    grid-column: 1 / -1;
+    height: 6px;
+    background: color-mix(in srgb, var(--main-color) 20%, transparent);
+}
+
+.hw-temp-bar > div {
+    height: 100%;
+    background: var(--main-color);
+    box-shadow: 0 0 4px var(--main-color);
+    transition: width 0.6s;
+}
+
+.hw-temp.warm .hw-temp-value,
+.hw-row.warm .sys-value {
+    color: #ffa030;
+}
+
+.hw-temp.warm .hw-temp-bar > div {
+    background: #ffa030;
+    box-shadow: 0 0 4px #ffa030;
+}
+
+.hw-temp.hot .hw-temp-value,
+.hw-row.hot .sys-value {
+    color: #ff4040;
+}
+
+.hw-temp.hot .hw-temp-bar > div {
+    background: #ff4040;
+    box-shadow: 0 0 4px #ff4040;
+}
+
+/* 機器ごとのまとまりを2列に並べる */
+#hw-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px 22px;
+}
+
+.hw-group-head {
+    font-size: 13px;
+    opacity: 0.7;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    border-bottom: 1px solid color-mix(in srgb, var(--main-color) 30%, transparent);
+    margin-bottom: 2px;
+}
+
+.hw-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    line-height: 1.5;
+}
+
+.hw-row > span:first-child {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+#hw-setup {
+    line-height: 1.6;
+}
+
+#hw-setup p {
+    margin: 0 0 6px;
+}
+
+#hw-setup a {
+    color: inherit;
+}
+
+.hw-note {
+    font-size: 13px;
+    opacity: 0.7;
+}
+
+#hw-setup ol {
+    margin: 4px 0 8px;
+    padding-left: 1.4em;
+}
+
+.hw-port-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+#hw-port {
+    width: 64px;
+    background: transparent;
+    border: 1px solid var(--main-color);
+    color: var(--main-color);
+    font-family: inherit;
+    font-size: 13px;
+    padding: 0 4px;
+}
+
 /* 保存データ・ダウンロード（システムの下。top は dlmon.js で合わせる） */
 #dl-box {
     position: absolute;

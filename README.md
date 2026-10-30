@@ -37,6 +37,9 @@ Chrome / Edge の「新しいタブ」を、時計・時間割・天気・地震
 - **システムモニター**
   - CPU とメモリの使用率を心電図風のグラフで表示します。
   - OS、CPU の名前とスレッド数、コアごとの使用率も出します。
+  - 「詳細」ボタンでハードウェア詳細のパネルが開きます。
+    - CPU・メモリの使用率とコアごとの使用率を、直近1分のグラフで表示します。
+    - [LibreHardwareMonitor](https://github.com/LibreHardwareMonitor/LibreHardwareMonitor) を入れていると、温度・GPU使用率・消費電力・クロック・ネットワーク・ストレージの読み書きのグラフと、機器ごとの詳しい値も表示します。
 - **回線速度**（Cloudflare）
   - 計測結果を記録して、履歴をグラフにします。
   - 接続状態と Ping も表示します。
@@ -91,6 +94,7 @@ Chrome / Edge の「新しいタブ」を、時計・時間割・天気・地震
 | `system.cpu` / `system.memory` | システムモニターの CPU・メモリ使用率 |
 | `downloads` | ダウンロードの進み具合の表示、更新用 ZIP のダウンロード |
 | 位置情報（ブラウザで許可した場合のみ） | 天気と気象警報の地域を決める |
+| `http://localhost/*` | LibreHardwareMonitor から温度などを読む（自分の PC の中だけ） |
 
 ### 外部サービス
 
@@ -106,10 +110,30 @@ Chrome / Edge の「新しいタブ」を、時計・時間割・天気・地震
 | [Cloudflare Speed Test](https://speed.cloudflare.com/) | 回線速度の計測、Ping |
 | Google（favicon） | ショートカットのアイコン |
 | GitHub | 新しいバージョンの確認 |
+| LibreHardwareMonitor（自分の PC） | 温度・消費電力などのセンサー情報（入れている人のみ） |
 
 > [!WARNING]
 > 地震情報・緊急地震速報は、外部のデータをそのまま表示しているだけです。
 > 遅れたり、届かなかったりすることがあります。防災には、公式の情報や専用のアプリを使ってください。
+
+## 温度などの詳細を見るには
+
+拡張機能だけでは温度を読めないため、LibreHardwareMonitor の Web サーバー機能を使います。
+
+1. [LibreHardwareMonitor](https://github.com/LibreHardwareMonitor/LibreHardwareMonitor/releases) の **v0.9.5 以降**を公式の GitHub から入れて、**管理者として**起動します（CPU の温度を読むのに必要です）。
+   - v0.9.4 以前は、Microsoft Defender が警告する古いドライバー（WinRing0）を使っているので使わないでください。
+2. メニューの **Options → Remote Web Server → Run** をオンにします。
+   - **Interface / Port** は **0.0.0.0** のままにしてください。ほかのアドレスにすると、新しいタブ（localhost）からつながらなくなります。
+3. Windows のファイアウォールの確認が出たら、**プライベート・パブリックのどちらにもチェックを入れずにキャンセル**します。
+   - Web サーバーはネットワーク全体で待ち受けるため、許可するとほかの PC からもセンサー情報が見えてしまいます。キャンセルしても、同じ PC の新しいタブからは読めます。
+4. 新しいタブのシステムパネルにある **詳細** を押すと、ハードウェア詳細のパネルが開きます。接続できると、ボタンに ● が付きます。
+
+> [!CAUTION]
+> セキュリティソフトが LibreHardwareMonitor を警告した場合は、除外設定をせずに使うのをやめてください。
+
+ポートを 8085 から変えている場合は、詳細パネルでポート番号を入力して「再接続」を押してください。
+
+グラフを細かく動かしたい場合は、LibreHardwareMonitor の **Options → Update Interval** を **250ms** にしてください（初期設定の 1s だと1秒ごとにしか値が変わりません）。
 
 ## キーボードショートカット
 

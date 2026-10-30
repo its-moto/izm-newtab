@@ -36,6 +36,7 @@
     let coreFills = [];
     let lastText = 0;
     let lastCol = null;
+    let lastCpu = null;    // 最新の CPU 使用率 { usage, cores }
     let color = '#00eaff';
 
     const getCpu = () => new Promise(resolve => chrome.system.cpu.getInfo(resolve));
@@ -191,6 +192,11 @@
 
     function frame(now) {
         requestAnimationFrame(frame);
+        // 大きいパネルを開いている間は後ろで見えないので描かない（再開したら今の位置から続ける）
+        if (typeof Modal !== 'undefined' && Modal.isOpen()) {
+            lastCol = null;
+            return;
+        }
         const list = Object.values(graphs);
         if (!list.every(fitCanvas)) return;
 
@@ -238,17 +244,21 @@
             } else {
                 let total = 0;
                 let idle = 0;
-                now.forEach((c, i) => {
+                const cores = now.map((c, i) => {
                     const dTotal = c.total - prevCpu[i].total;
                     const dIdle = c.idle - prevCpu[i].idle;
                     total += dTotal;
                     idle += dIdle;
-                    if (dTotal > 0) coreFills[i].style.width = `${(1 - dIdle / dTotal) * 100}%`;
+                    const coreUsage = dTotal > 0 ? (1 - dIdle / dTotal) * 100 : 0;
+                    if (dTotal > 0) coreFills[i].style.width = `${coreUsage}%`;
+                    return coreUsage;
                 });
                 if (total > 0) {
                     const usage = (1 - idle / total) * 100;
                     setTarget(graphs.cpu, usage);
                     if (updateText) cpuValue.textContent = `${Math.round(usage)}%`;
+                    // ハードウェア詳細のグラフにも渡す（hwmon.js）
+                    lastCpu = { usage, cores };
                 }
             }
             prevCpu = now;
@@ -258,6 +268,11 @@
             const percent = (used / mem.capacity) * 100;
             const GB = 1024 ** 3;
             setTarget(graphs.mem, percent);
+            if (lastCpu) {
+                window.dispatchEvent(new CustomEvent('sysmon-sample', {
+                    detail: { cpu: lastCpu.usage, cores: lastCpu.cores, mem: percent, memUsed: used, memTotal: mem.capacity },
+                }));
+            }
             if (updateText) {
                 memValue.textContent =
                     `${(used / GB).toFixed(1)} / ${(mem.capacity / GB).toFixed(1)} GB (${Math.round(percent)}%)`;

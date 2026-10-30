@@ -120,14 +120,42 @@
         <div id="calc-keys"></div>
     </div>
 
-    <div id="sci-box" hidden>
+    <div id="modal-backdrop" hidden></div>
+
+    <div id="hw-box" class="modal-panel" hidden>
+        <div class="modal-head">
+            <span class="modal-title">ハードウェア詳細</span>
+            <span id="hw-status"></span>
+            <button id="hw-close-btn" class="sci-tool" title="閉じる">×</button>
+        </div>
+        <div id="hw-summary"></div>
+        <div id="hw-charts"></div>
+        <div id="hw-list"></div>
+        <div id="hw-setup">
+            <p>温度などを見るには <b>LibreHardwareMonitor</b>（v0.9.5 以降）が必要です。</p>
+            <ol>
+                <li><a href="https://github.com/LibreHardwareMonitor/LibreHardwareMonitor/releases" target="_blank">公式の GitHub</a> から最新版を入れて、<b>管理者として</b>起動</li>
+                <li>Options → Remote Web Server → <b>Run</b>（Interface / Port は <b>0.0.0.0</b> のまま）</li>
+                <li>グラフを細かく動かすなら、Options → Update Interval → <b>250ms</b></li>
+                <li>Windows のファイアウォールの確認が出たら、<b>どちらにもチェックを入れずにキャンセル</b>（ほかの PC から見られないように）</li>
+            </ol>
+            <p class="hw-note">セキュリティソフトが警告した場合は、除外設定はせずに使うのをやめてください。</p>
+            <div class="hw-port-row">
+                <label for="hw-port">ポート</label>
+                <input type="number" id="hw-port" min="1" max="65535">
+                <button id="hw-retry-btn" class="sci-tool">再接続</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="sci-box" class="modal-panel" hidden>
         <div id="sci-head">
             <span id="sci-title">関数電卓</span>
             <button id="sci-angle-btn" class="sci-tool" title="角度の単位（微分・積分・グラフは常にラジアン）">DEG</button>
             <button id="sci-sd-btn" class="sci-tool" title="分数と小数を切り替え">分数 → 小数</button>
             <button id="sci-tex-btn" class="sci-tool" title="結果を TeX でコピー">TeXコピー</button>
             <button id="sci-graph-btn" class="sci-tool">グラフ</button>
-            <button id="sci-close-btn" class="sci-tool" title="閉じる（Esc）">×</button>
+            <button id="sci-close-btn" class="sci-tool" title="閉じる">×</button>
         </div>
         <div id="sci-history"></div>
         <input type="text" id="sci-input" spellcheck="false" autocomplete="off"
@@ -140,7 +168,7 @@
     </div>
 
     <div id="sys-box">
-        <div id="sys-title"><span>システム</span><span id="sys-os" class="sys-detail"></span></div>
+        <div id="sys-title"><span>システム</span><button id="hw-toggle-btn">詳細</button><span id="sys-os" class="sys-detail"></span></div>
         <div class="sys-row"><span>CPU</span><span id="cpu-detail" class="sys-detail"></span><span id="cpu-value" class="sys-value">--%</span></div>
         <canvas id="cpu-graph" class="sys-graph"></canvas>
         <div id="cpu-cores"></div>
@@ -220,6 +248,7 @@
 
     <div id="hoge" style="position: absolute; top: 1200px;width: 100vh;height: 10px;"></div>
 
+    <script src="assets/script/modal.js"></script>
     <script src="assets/script/script.js"></script>
     <script src="assets/script/timetable.js"></script>
     <script src="assets/script/bg.js"></script>
@@ -236,6 +265,8 @@
     <script src="assets/script/shortcuts.js"></script>
     <script src="assets/script/favicon.js"></script>
     <script src="assets/script/sysmon.js"></script>
+    <script src="assets/script/chart.js"></script>
+    <script src="assets/script/hwmon.js"></script>
     <script src="assets/script/dlmon.js"></script>
     <script src="assets/script/eew.js"></script>
 </body>

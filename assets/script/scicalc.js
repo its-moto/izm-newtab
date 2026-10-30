@@ -221,8 +221,6 @@
         if (e.key === 'Enter') {
             e.preventDefault();
             calculate();
-        } else if (e.key === 'Escape') {
-            close();
         } else if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
             if (history.length === 0) return;
             e.preventDefault();
@@ -233,14 +231,14 @@
 
     // ---------- 開く・閉じる ----------
     function open(initial) {
-        box.hidden = false;
+        Modal.open(box); // 後ろを暗くして触れなくする（modal.js）
         if (initial) input.value = initial;
         input.focus();
         input.setSelectionRange(input.value.length, input.value.length);
         if (!graph.hidden) drawGraph();
     }
     function close() {
-        box.hidden = true;
+        Modal.close(box);
     }
     window.openSciCalc = open; // calculator.js の fx ボタンから呼ぶ
 
