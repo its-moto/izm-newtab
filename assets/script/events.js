@@ -3,6 +3,63 @@
 // その日だけ、画面に飾りが流れ、時計の横にアイコンが出て、起動演出のあいさつが変わる
 // 隠しコマンド：DevTools のコンソールで eventFx('halloween') など / コナミコマンド（↑↑↓↓←→←→BA）で順番に切り替え
 // =====================================
+// ---------- ハロウィンの小ネタ ----------
+// ・時間割のどこかのマスにおばけが隠れている（クリックすると「Boo!」と逃げて、しばらくするとまた別のマスに現れる）
+// ・検索ボックスの案内文が「Trick or Treat?」になる
+const HalloweenTricks = (() => {
+    const RESPAWN_MS = 20000;
+    const search = document.getElementById('searchbox');
+    let ghost = null;
+    let timer = null;
+    let originalPlaceholder = null;
+
+    function hide() {
+        // 時間割の授業のマス（左端の時限の列以外）からランダムに1つ選ぶ
+        const cells = [...document.querySelectorAll('#timetable-body td:not(.period-num)')];
+        if (cells.length === 0) return;
+        const cell = cells[Math.floor(Math.random() * cells.length)];
+        ghost = document.createElement('span');
+        ghost.className = 'tt-ghost';
+        ghost.textContent = '👻';
+        ghost.title = '…？';
+        ghost.addEventListener('click', boo);
+        cell.classList.add('ghost-cell');
+        cell.appendChild(ghost);
+    }
+
+    function boo(e) {
+        e.stopPropagation();
+        const g = e.currentTarget;
+        g.classList.add('boo');
+        g.textContent = 'Boo!';
+        g.removeEventListener('click', boo);
+        setTimeout(() => remove(g), 900);
+        timer = setTimeout(hide, RESPAWN_MS);
+    }
+
+    function remove(g = ghost) {
+        g?.parentElement?.classList.remove('ghost-cell');
+        g?.remove();
+        if (g === ghost) ghost = null;
+    }
+
+    return {
+        start() {
+            if (ghost) return;
+            hide();
+            if (search) {
+                originalPlaceholder ??= search.placeholder;
+                search.placeholder = '🎃 Trick or Treat?  ' + originalPlaceholder;
+            }
+        },
+        stop() {
+            clearTimeout(timer);
+            remove();
+            if (search && originalPlaceholder !== null) search.placeholder = originalPlaceholder;
+        },
+    };
+})();
+
 const Events = (() => {
     const FPS = 30;
     const EMOJI_FONT = '"Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", sans-serif';
@@ -30,6 +87,8 @@ const Events = (() => {
             icon: '🎃',
             greeting: '> Happy Halloween!',
             active: d => d.getMonth() === 9 && d.getDate() === 31,
+            onStart: () => HalloweenTricks.start(),
+            onStop: () => HalloweenTricks.stop(),
             init: () => ({
                 pumpkins: Array.from({ length: 6 }, () => ({ x: rand(0, W()), y: rand(0, H()), size: rand(22, 38), speed: rand(8, 18), phase: rand(0, 6) })),
                 bats: Array.from({ length: 5 }, () => ({ x: rand(0, W()), y: rand(40, H() * 0.6), size: rand(20, 30), speed: rand(60, 120), phase: rand(0, 6) })),
@@ -234,8 +293,10 @@ const Events = (() => {
     }
 
     function start(name) {
+        if (current && current !== name) DEFS[current].onStop?.();
         current = name;
         const def = DEFS[name];
+        def.onStart?.();
         badge.textContent = def.icon;
         badge.title = def.name;
         badge.hidden = false;
@@ -250,6 +311,7 @@ const Events = (() => {
     }
 
     function stop() {
+        if (current) DEFS[current].onStop?.();
         current = null;
         running = false;
         badge.hidden = true;
@@ -287,5 +349,7 @@ const Events = (() => {
     return {
         // 起動演出のあいさつに使う（今日のイベントがなければ null）
         greeting: () => (current ? DEFS[current].greeting : null),
+        // 今のイベントの名前（なければ null）
+        current: () => current,
     };
 })();

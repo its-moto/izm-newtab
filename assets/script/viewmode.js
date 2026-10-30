@@ -2,9 +2,12 @@
 // 背景鑑賞モード（「背景を選択」の左の目のボタン）
 // パネルを右下から順に閉じて背景を見せ、左下にシステムログを流し続ける（背景の暗さは設定のまま）
 // クリックかキーで、パネルが起動演出のように戻ってくる
+// 何も操作しないまま IDLE_MS たつと、スクリーンセーバーとして自動で入る（マウスを動かしても戻る）
 // =====================================
-(() => {
+const ViewMode = (() => {
     const LOG_MAX = 14;
+    const IDLE_MS = 5 * 60000;     // スクリーンセーバーになるまでの時間
+    const MOVE_TO_EXIT_PX = 12;    // スクリーンセーバー中、これ以上マウスが動いたら戻る
     const btn = document.getElementById('view-mode-btn');
     const root = document.documentElement;
 
@@ -90,7 +93,21 @@
         return null;
     }
 
+    // ハロウィン（events.js）の日だけ混ざるログ
+    const SPOOKY = [
+        () => ['SPOOK', `${rnd(2, 13)} ghosts detected in sector 13`],
+        () => ['SPOOK', 'pumpkin core temperature: 31°C'],
+        () => ['SPOOK', 'trick-or-treat request denied (no candy)'],
+        () => ['SPOOK', `bat swarm  ${rnd(20, 99)} units  heading west`],
+        () => ['SPOOK', 'unknown process "boo.exe" started'],
+    ];
+
     function nextLine() {
+        if (typeof Events !== 'undefined' && Events.current() === 'halloween' && Math.random() < 0.3) {
+            const line = pick(SPOOKY)();
+            lastTag = line[0];
+            return line;
+        }
         let line = Math.random() < 0.6 ? nextReal() : null;
         while (!line || line[0] === lastTag) line = pick(DUMMY)();
         lastTag = line[0];
@@ -122,10 +139,15 @@
     }
 
     // ---------- 入る・戻る ----------
-    async function enter() {
+    // auto: スクリーンセーバーとして入ったとき（マウスを動かしても戻る）
+    let auto = false;
+    let movedFrom = null;
+
+    async function enter(byIdle = false) {
         if (active || busy) return;
         busy = true;
         active = true;
+        auto = byIdle;
         await Boot.panelsOut({ step: 30, hide: el => el.classList.add('view-hidden') });
         root.classList.add('viewing');
 
@@ -134,7 +156,7 @@
         overlay.innerHTML = `
             <div class="boot-corner tl"></div><div class="boot-corner tr"></div>
             <div class="boot-corner bl"></div><div class="boot-corner br"></div>
-            <div class="view-hint">VIEW MODE — PRESS ANY KEY TO RETURN</div>
+            <div class="view-hint">${auto ? 'SCREEN SAVER — MOVE THE MOUSE TO RETURN' : 'VIEW MODE — PRESS ANY KEY TO RETURN'}</div>
             <div class="view-log"></div>
             <div class="view-time"><div class="view-clock"></div><div class="view-date"></div></div>`;
         document.body.appendChild(overlay);
@@ -146,6 +168,10 @@
         setTimeout(() => {
             overlay?.addEventListener('click', exit);
             window.addEventListener('keydown', onKey);
+            if (auto) {
+                movedFrom = null;
+                window.addEventListener('mousemove', onMove);
+            }
         }, 300);
         busy = false;
     }
@@ -155,10 +181,20 @@
         exit();
     }
 
+    // 手が少し触れた程度では戻らないよう、ある程度動いたら戻る
+    function onMove(e) {
+        if (!movedFrom) {
+            movedFrom = { x: e.clientX, y: e.clientY };
+            return;
+        }
+        if (Math.hypot(e.clientX - movedFrom.x, e.clientY - movedFrom.y) > MOVE_TO_EXIT_PX) exit();
+    }
+
     async function exit() {
         if (!active || busy) return;
         busy = true;
         window.removeEventListener('keydown', onKey);
+        window.removeEventListener('mousemove', onMove);
         clearTimeout(logTimer);
         clearInterval(clockTimer);
         overlay.classList.add('leaving');
@@ -167,7 +203,29 @@
         await Boot.panelsIn({ delay: 150, step: 40, reveal: el => el.classList.remove('view-hidden') });
         active = false;
         busy = false;
+        resetIdle();
     }
 
-    btn.addEventListener('click', enter);
+    btn.addEventListener('click', () => enter(false));
+
+    // ---------- スクリーンセーバー ----------
+    // 操作があるたびに数え直し、IDLE_MS のあいだ何もなければ入る
+    let idleTimer = null;
+    function resetIdle() {
+        clearTimeout(idleTimer);
+        idleTimer = setTimeout(() => {
+            const busyElsewhere = document.hidden || root.classList.contains('booting') ||
+                (typeof Modal !== 'undefined' && Modal.isOpen());
+            if (busyElsewhere) resetIdle(); else enter(true);
+        }, IDLE_MS);
+    }
+    ['mousemove', 'mousedown', 'keydown', 'wheel', 'touchstart'].forEach(type =>
+        window.addEventListener(type, () => { if (!active) resetIdle(); }, { passive: true }));
+    document.addEventListener('visibilitychange', () => { if (!document.hidden && !active) resetIdle(); });
+    resetIdle();
+
+    return {
+        // 隠しコマンド等から試せるように
+        screensaver: () => enter(true),
+    };
 })();
