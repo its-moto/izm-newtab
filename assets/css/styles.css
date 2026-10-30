@@ -75,7 +75,7 @@ body {
     top: 180px;
     height: auto;
     min-height: 42px;
-    width: 165px;
+    width: 220px; /* 時計の箱と同じ外幅（246px）にそろえる */
     padding: 10px;
     font-size: 20px;
 }
@@ -85,7 +85,7 @@ body {
     width: 106px;
     height: 36px;
     top: 10px;
-    left: 60px;
+    right: 17px;
     border: solid 3px var(--main-color);
 }
 
@@ -94,7 +94,7 @@ body {
     width: 5px;
     height: 18px;
     top: 21px;
-    left: 174px;
+    right: 10px;
     background-color: var(--main-color);
 }
 
@@ -134,6 +134,56 @@ body {
     width: 40px;
     background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.85), transparent);
     animation: battery-sweep 1.6s linear infinite;
+}
+
+/* バッテリーのない PC（デスクトップなど）：電池の代わりにコンセントの絵を出す */
+#battery-plug {
+    display: none;
+    position: absolute;
+    top: 8px;
+    right: 10px;
+    width: 120px;
+    height: 40px;
+    overflow: visible;
+    filter: drop-shadow(0 0 4px var(--main-color));
+}
+
+#battery-box.ac #battery-plug {
+    display: block;
+}
+
+#battery-box.ac #battery-bg,
+#battery-box.ac #battery-cover {
+    display: none;
+}
+
+#battery-plug .plug-cable {
+    fill: none;
+    stroke: var(--main-color);
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-dasharray: 6 5;
+    animation: plug-flow 0.9s linear infinite;
+}
+
+#battery-plug .plug-body {
+    fill: color-mix(in srgb, var(--main-color) 25%, transparent);
+    stroke: var(--main-color);
+    stroke-width: 3;
+}
+
+#battery-plug .plug-pins {
+    fill: none;
+    stroke: var(--main-color);
+    stroke-width: 4;
+    stroke-linecap: square;
+}
+
+/* ケーブルの中を電気が流れていくように見せる */
+@keyframes plug-flow {
+    to {
+        stroke-dashoffset: -11;
+    }
 }
 
 /* 残り少ない：テーマカラーのままふわっと明滅 */

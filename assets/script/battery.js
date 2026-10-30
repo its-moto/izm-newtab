@@ -4,6 +4,7 @@
 // =====================================
 
 const BATTERY_SAMPLES_KEY = 'battery-samples';
+const BATTERY_SEEN_KEY = 'battery-seen';   // 一度でもバッテリーで動いている様子を見たか
 const BATTERY_LOW = 0.2;              // これ以下で警告表示
 const ESTIMATE_WINDOW_MS = 60 * 60000; // 推定に使う期間（直近1時間）
 const ESTIMATE_MIN_DROP = 0.02;       // 推定に必要な残量の変化（2%）
@@ -64,6 +65,17 @@ function describeBatteryTime(battery, data) {
     return battery.charging ? "充電速度を計測中..." : "減り方を計測中...";
 }
 
+// ---------- バッテリーのない PC ----------
+// デスクトップ PC でも Battery API は「100%・充電中・満充電まで0秒」を返すので、それで見分ける
+// ノート PC が満充電でつながっているときも同じ値になるため、一度でも減ったり放電したりしたのを見たら以後はバッテリーありとして扱う
+function looksLikeNoBattery(battery) {
+    const seen = localStorage.getItem(BATTERY_SEEN_KEY) === '1';
+    const full = battery.charging && battery.level >= 1 && battery.chargingTime === 0 &&
+        !Number.isFinite(battery.dischargingTime);
+    if (!full && !seen) localStorage.setItem(BATTERY_SEEN_KEY, '1');
+    return full && !seen;
+}
+
 // ---------- 表示 ----------
 async function updateBatteryInfo() {
     // Battery APIがサポートされているか確認
@@ -79,6 +91,16 @@ async function updateBatteryInfo() {
     const fill = document.getElementById('battery-fill');
 
     function displayInfo() {
+        const noBattery = looksLikeNoBattery(battery);
+        box.classList.toggle('ac', noBattery);
+        if (noBattery) {
+            box.classList.remove('charging', 'low');
+            document.getElementById('level').innerText = 'AC電源';
+            document.getElementById('status').innerText = 'バッテリーなし';
+            document.getElementById('battery-time').innerText = 'コンセントから給電中';
+            return;
+        }
+
         const levelPercent = Math.round(battery.level * 100);
         document.getElementById('level').innerText = `${levelPercent}%`;
         fill.style.width = `${levelPercent}%`;
