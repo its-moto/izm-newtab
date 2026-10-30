@@ -245,7 +245,7 @@
             const prev = shownCores[i] ?? v;
             return prev + (v - prev) * 0.2;
         });
-        const dpr = (window.devicePixelRatio || 1) * 2;
+        const dpr = (window.devicePixelRatio || 1) * 2 * PageZoom.value;
         coresCanvas.width = Math.round(w * dpr);
         coresCanvas.height = Math.round(h * dpr);
         const g = coresCanvas.getContext('2d');

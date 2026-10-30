@@ -81,7 +81,7 @@ class TrendChart {
         const w = canvas.clientWidth;
         const h = canvas.clientHeight;
         if (!w || !h) return;
-        const dpr = (window.devicePixelRatio || 1) * 2;
+        const dpr = (window.devicePixelRatio || 1) * 2 * (typeof PageZoom !== 'undefined' ? PageZoom.value : 1);
         if (canvas.width !== Math.round(w * dpr)) canvas.width = Math.round(w * dpr);
         if (canvas.height !== Math.round(h * dpr)) canvas.height = Math.round(h * dpr);
         const g = canvas.getContext('2d');

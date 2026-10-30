@@ -281,7 +281,7 @@
     }
 
     function drawGraph() {
-        const dpr = (window.devicePixelRatio || 1) * 2;
+        const dpr = (window.devicePixelRatio || 1) * 2 * PageZoom.value;
         const w = graph.clientWidth;
         const h = graph.clientHeight;
         if (!w || !h) return;

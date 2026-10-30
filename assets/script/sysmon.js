@@ -101,7 +101,7 @@
     // ふだんから2倍で描き、拡大されたらその倍率に合わせる（最大4倍）
     function pixelScale() {
         const pinch = window.visualViewport?.scale || 1;
-        return (window.devicePixelRatio || 1) * Math.min(4, Math.max(2, pinch));
+        return (window.devicePixelRatio || 1) * PageZoom.value * Math.min(4, Math.max(2, pinch));
     }
 
     // キャンバスのサイズや倍率が変わったら描画バッファを作り直す

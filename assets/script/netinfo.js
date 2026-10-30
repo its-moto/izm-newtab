@@ -62,7 +62,7 @@
 
     // 最新が右端の細い棒グラフ。失敗した回は下に赤い印を出す
     function drawGraph() {
-        const dpr = window.devicePixelRatio || 1;
+        const dpr = (window.devicePixelRatio || 1) * PageZoom.value; // ページの拡大（layout.js）でもぼやけないように
         const w = graph.clientWidth;
         const h = graph.clientHeight;
         if (!w || !h) return;
