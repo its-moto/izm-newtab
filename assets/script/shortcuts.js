@@ -48,9 +48,11 @@
         }
     }
 
+    // Chrome が覚えているサイトのアイコンを使う（manifest の favicon 権限が必要）
+    // 外部に問い合わせないので、アイコンがないサイトでもコンソールに 404 が出ない（その場合は地球儀のアイコン）
     function faviconUrl(url) {
-        const host = new URL(url).hostname;
-        return `https://www.google.com/s2/favicons?sz=32&domain=${encodeURIComponent(host)}`;
+        if (typeof chrome === 'undefined' || !chrome.runtime?.id) return '';
+        return chrome.runtime.getURL(`/_favicon/?pageUrl=${encodeURIComponent(url)}&size=32`);
     }
 
     // ---------- ショートカットバーの描画 ----------
@@ -78,6 +80,7 @@
             shortcutBox.appendChild(empty);
         }
         shortcutBox.appendChild(editBtn); // replaceChildrenで消えるので毎回付け直す
+        Boot.popIn(shortcutBox, [...shortcutBox.children], 45); // アイコンを順番に出す（boot.js）
     }
 
     // ---------- 編集ボタン ----------

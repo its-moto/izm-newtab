@@ -121,7 +121,8 @@ function initWeather() {
             `;
                 list.appendChild(item);
             }
-            console.log(WEATHER_CONFIG.LAT, WEATHER_CONFIG.LON)
+            // 読み込めたら、今の天気と予報を順番に出す（boot.js）
+            Boot.popIn(document.getElementById('weather-box'), [document.getElementById('main-icon'), ...list.children], 35);
 
         } catch (e) {
             console.error("Weather load error:", e);

@@ -115,8 +115,8 @@ async function updateBatteryInfo() {
         document.getElementById('battery-time').innerText = describeBatteryTime(battery, data);
     }
 
-    // 初期表示（0%から伸びるアニメーションを見せるため1フレーム待つ）
-    requestAnimationFrame(displayInfo);
+    // 初期表示：起動演出でこの箱が出てから、0%から伸びるアニメーションを見せる（boot.js）
+    Boot.whenShown(box, 350).then(() => requestAnimationFrame(displayInfo));
 
     // 状態が変化した時のイベントリスナー
     battery.addEventListener('levelchange', displayInfo); // 残量変化

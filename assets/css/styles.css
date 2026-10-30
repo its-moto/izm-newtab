@@ -875,6 +875,19 @@ html.booting :is(#clockbox, #battery-box, #theme-box, #speed-box, #searchbox, #s
     letter-spacing: 0.08em;
 }
 
+/* タイトルは全文字同時に下からフェードイン */
+.boot-title.rise {
+    animation: boot-rise 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@keyframes boot-rise {
+    from {
+        opacity: 0;
+        transform: translateY(18px);
+        filter: blur(2px);
+    }
+}
+
 /* 真ん中から左右へ伸びる光る線 */
 .boot-line {
     width: min(640px, 70vw);
@@ -903,7 +916,6 @@ html.booting :is(#clockbox, #battery-box, #theme-box, #speed-box, #searchbox, #s
 }
 
 /* 文字を打っている位置のカーソル */
-.boot-title:not(:empty)::after,
 .boot-sub:not(:empty)::after,
 .boot-greet:not(:empty)::after {
     content: '_';
@@ -914,6 +926,33 @@ html.booting :is(#clockbox, #battery-box, #theme-box, #speed-box, #searchbox, #s
 @keyframes boot-caret {
     50% {
         opacity: 0;
+    }
+}
+
+/* 箱の中身を順番に出す（boot.js の Boot.popIn） */
+/* パネルの立ち上がり（.anim-open > *）より優先する */
+.pop-pending,
+.anim-open > .pop-pending {
+    opacity: 0;
+    animation: none;
+}
+
+.pop-in,
+.anim-open > .pop-in {
+    animation: pop-in 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@keyframes pop-in {
+    from {
+        opacity: 0;
+        transform: translateY(6px) scale(0.9);
+        filter: brightness(2);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .pop-in {
+        animation: none;
     }
 }
 

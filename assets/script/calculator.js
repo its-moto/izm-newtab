@@ -28,6 +28,7 @@
         b.addEventListener('click', () => press(action));
         keysEl.appendChild(b);
     });
+    Boot.popIn(box, [...keysEl.children], 18); // ボタンを順番に出す（boot.js）
 
     // ---------- 式の評価 ----------
     function evaluate(src) {

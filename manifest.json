@@ -21,7 +21,8 @@
   "permissions": [
     "system.cpu",
     "system.memory",
-    "downloads"
+    "downloads",
+    "favicon"
   ],
   "host_permissions": [
     "http://localhost/*",

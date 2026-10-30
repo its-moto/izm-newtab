@@ -1,4 +1,50 @@
 // =====================================
+// 起動演出に合わせて、箱の中身（電卓のボタン・ショートカット・天気の予報など）を順番に出すための道具
+// =====================================
+const Boot = (() => {
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const root = document.documentElement;
+
+    // el が起動演出で表示されるまで待つ。表示されたら extra ms 後に解決（演出中でなければすぐ）
+    function whenShown(el, extra = 0) {
+        return new Promise(resolve => {
+            const ready = () => !root.classList.contains('booting') || el.classList.contains('boot-shown');
+            if (!root.classList.contains('booting')) return resolve();
+            if (ready()) return setTimeout(resolve, extra);
+            const observer = new MutationObserver(() => {
+                if (!ready()) return;
+                observer.disconnect();
+                setTimeout(resolve, extra);
+            });
+            observer.observe(el, { attributes: true, attributeFilter: ['class'] });
+            observer.observe(root, { attributes: true, attributeFilter: ['class'] });
+        });
+    }
+
+    // 中身を少しずつずらして、ふわっと出す（箱が表示されるまでは隠しておく）
+    function popIn(container, items, step = 30) {
+        if (reduceMotion || items.length === 0) return;
+        items.forEach(el => el.classList.add('pop-pending'));
+        whenShown(container, 250).then(() => {
+            items.forEach((el, i) => {
+                el.classList.remove('pop-pending');
+                el.style.animationDelay = `${i * step}ms`;
+                el.classList.add('pop-in');
+                const done = e => {
+                    if (e.target !== el) return;
+                    el.removeEventListener('animationend', done);
+                    el.classList.remove('pop-in');
+                    el.style.animationDelay = '';
+                };
+                el.addEventListener('animationend', done);
+            });
+        });
+    }
+
+    return { whenShown, popIn };
+})();
+
+// =====================================
 // 起動演出：新しいタブを開くたびに、各パネルが左上から順に立ち上がる
 // その日（朝6時区切り）はじめて開いたときは、タイトルとあいさつを出してからゆっくり立ち上がる長い演出にする
 // <head> で読み込み、表示前にパネルを隠しておく（アニメーションは modal.js の anim-open を使う）
@@ -75,7 +121,11 @@
 
         const steps = async () => {
             await wait(250); // 線が伸びきるのを待つ
-            await typeText(splash.querySelector('.boot-title'), `出雲式新しいタブ${version ? ` v${version}` : ''}`);
+            // タイトルだけは全部の文字を同時に、下からふわっと出す
+            const title = splash.querySelector('.boot-title');
+            title.textContent = `IZM NewTab${version ? ` v${version}` : ''}`;
+            title.classList.add('rise');
+            await wait(450);
             await typeText(splash.querySelector('.boot-sub'), date, 22);
             await typeText(splash.querySelector('.boot-greet'), greeting(now.getHours()), 60);
             await wait(650);
