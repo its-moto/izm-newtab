@@ -7,10 +7,12 @@
     <title>新しいタブ</title>
     <link rel="icon" id="favicon" href="assets/icons/icon48.png">
     <link rel="stylesheet" href="assets/css/styles.css">
+    <script src="assets/script/boot.js"></script>
 </head>
 
 <body>
     <canvas id="background"></canvas>
+    <canvas id="weather-fx"></canvas>
 
     <input type="text" id="searchbox" placeholder="Google 検索...">
 
@@ -55,6 +57,7 @@
 
     <div id="weather-box">
         <div id="city-name" style="font-size: 14px; font-weight: bold; margin-bottom: 5px;">取得中...</div>
+        <button id="weather-fx-btn">演出</button>
 
         <div class="weather-main" style="display: flex; align-items: center; gap: 10px;">
             <div id="main-icon" style="font-size: 40px;">--</div>
@@ -263,6 +266,7 @@
     <script src="assets/script/versions.js"></script>
     <script src="assets/script/weather.js"></script>
     <script src="assets/script/warning.js"></script>
+    <script src="assets/script/weatherfx.js"></script>
     <script src="assets/script/speedchecker.js"></script>
     <script src="assets/script/netinfo.js"></script>
     <script src="assets/script/calculator.js"></script>

@@ -105,6 +105,7 @@
         </div>`;
     document.body.appendChild(modal);
 
+    const dialog = modal.querySelector('#sc-dialog');
     const listEl = modal.querySelector('#sc-list');
     const countEl = modal.querySelector('#sc-count');
     const errorEl = modal.querySelector('#sc-error');
@@ -230,10 +231,18 @@
         load().forEach(addRow);
         updateCount();
         modal.hidden = false;
+        Modal.animate(dialog, 'anim-open'); // 開くアニメーション（modal.js）
     }
 
-    function closeModal() {
+    let closing = false;
+    async function closeModal() {
+        if (closing) return;
+        closing = true;
+        modal.classList.add('closing');
+        await Modal.animate(dialog, 'anim-close');
+        modal.classList.remove('closing');
         modal.hidden = true;
+        closing = false;
     }
 
     editBtn.addEventListener('click', openModal);

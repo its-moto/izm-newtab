@@ -35,24 +35,45 @@ function initWeather() {
         INTERVAL: "hourly" // "hourly" で1時間ごと取得
     };
     // Open-MeteoのURL（1時間ごとの天気・気温・降水確率をリクエスト）
-    const API_URL = `https://api.open-meteo.com/v1/forecast?latitude=${WEATHER_CONFIG.LAT}&longitude=${WEATHER_CONFIG.LON}&hourly=temperature_2m,precipitation_probability,weathercode&timezone=Asia%2FTokyo`;
+    const API_URL = `https://api.open-meteo.com/v1/forecast?latitude=${WEATHER_CONFIG.LAT}&longitude=${WEATHER_CONFIG.LON}&hourly=temperature_2m,precipitation_probability,weathercode,is_day&timezone=Asia%2FTokyo`;
 
 
-    // 天気コードをアイコンと文字に変換（WMO準拠）
-    function getWeatherInfo(code) {
+    // 天気コードをアイコンと文字に変換（WMO の全コード）
+    // night: 夜のときのアイコン（晴れ系のみ）
+    function getWeatherInfo(code, isDay = 1) {
         const table = {
-            0: { icon: "☀️", desc: "快晴" },
-            1: { icon: "🌤️", desc: "晴れ" },
-            2: { icon: "⛅", desc: "時々曇り" },
+            0: { icon: "☀️", night: "🌙", desc: "快晴" },
+            1: { icon: "🌤️", night: "🌙", desc: "晴れ" },
+            2: { icon: "⛅", night: "☁️", desc: "時々曇り" },
             3: { icon: "☁️", desc: "曇り" },
             45: { icon: "🌫️", desc: "霧" },
-            51: { icon: "🌦️", desc: "小雨" },
-            61: { icon: "☔", desc: "雨" },
-            71: { icon: "❄️", desc: "雪" },
+            48: { icon: "🌫️", desc: "霧（着氷）" },
+            51: { icon: "🌦️", desc: "霧雨（弱）" },
+            53: { icon: "🌦️", desc: "霧雨" },
+            55: { icon: "🌧️", desc: "霧雨（強）" },
+            56: { icon: "🌧️", desc: "着氷性の霧雨" },
+            57: { icon: "🌧️", desc: "着氷性の霧雨（強）" },
+            61: { icon: "🌧️", desc: "小雨" },
+            63: { icon: "🌧️", desc: "雨" },
+            65: { icon: "🌧️", desc: "大雨" },
+            66: { icon: "🌧️", desc: "着氷性の雨" },
+            67: { icon: "🌧️", desc: "着氷性の雨（強）" },
+            71: { icon: "🌨️", desc: "小雪" },
+            73: { icon: "❄️", desc: "雪" },
+            75: { icon: "❄️", desc: "大雪" },
+            77: { icon: "🌨️", desc: "霧雪" },
             80: { icon: "🌦️", desc: "にわか雨" },
-            95: { icon: "⛈️", desc: "雷雨" }
+            81: { icon: "🌧️", desc: "にわか雨（強）" },
+            82: { icon: "⛈️", desc: "激しいにわか雨" },
+            85: { icon: "🌨️", desc: "にわか雪" },
+            86: { icon: "❄️", desc: "にわか雪（強）" },
+            95: { icon: "⛈️", desc: "雷雨" },
+            96: { icon: "⛈️", desc: "雷雨（ひょう）" },
+            99: { icon: "⛈️", desc: "雷雨（強いひょう）" },
         };
-        return table[code] || { icon: "🌡️", desc: "不明" };
+        const info = table[code];
+        if (!info) return { icon: "🌡️", desc: `不明（${code}）` };
+        return { icon: !isDay && info.night ? info.night : info.icon, desc: info.desc };
     }
 
     async function updateWeather() {
@@ -67,7 +88,9 @@ function initWeather() {
             const idx = currentHourIndex < 0 ? 0 : currentHourIndex;
 
             // --- 現在の天気を表示 ---
-            const currentInfo = getWeatherInfo(hourly.weathercode[idx]);
+            const currentInfo = getWeatherInfo(hourly.weathercode[idx], hourly.is_day?.[idx] ?? 1);
+            // 天気の演出（weatherfx.js）に今の天気を知らせる
+            window.dispatchEvent(new CustomEvent('weather-now', { detail: { code: hourly.weathercode[idx], isDay: hourly.is_day?.[idx] ?? 1 } }));
             document.getElementById('city-name').textContent = WEATHER_CONFIG.CITY_NAME;
             document.getElementById('main-icon').textContent = currentInfo.icon;
             document.getElementById('main-temp').textContent = Math.round(hourly.temperature_2m[idx]);
@@ -82,7 +105,7 @@ function initWeather() {
 
                 const date = new Date(hourly.time[i]);
                 const hour = date.getHours() + "時";
-                const info = getWeatherInfo(hourly.weathercode[i]);
+                const info = getWeatherInfo(hourly.weathercode[i], hourly.is_day?.[i] ?? 1);
                 const temp = Math.round(hourly.temperature_2m[i]);
                 const pop = hourly.precipitation_probability[i];
 
