@@ -1,9 +1,43 @@
 // =====================================
-// 起動演出に合わせて、箱の中身（電卓のボタン・ショートカット・天気の予報など）を順番に出すための道具
+// 起動演出の道具
+// ・パネルを順番に開く / 閉じる（起動演出・背景鑑賞モードで使う）
+// ・箱の中身（電卓のボタン・ショートカット・天気の予報など）を順番に出す
 // =====================================
 const Boot = (() => {
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const root = document.documentElement;
+    const PANELS = [
+        'clockbox', 'battery-box', 'theme-box', 'speed-box', 'searchbox', 'shortcut-box',
+        'timetable-box', 'weather-box', 'eew-box', 'setup-ui', 'calc-box', 'sys-box', 'dl-box',
+    ];
+    const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+    // 画面の左上から右下への順（横の位置を優先し、縦は少しだけ効かせる）
+    function panelsInOrder() {
+        const order = el => {
+            const r = el.getBoundingClientRect();
+            return r.left + r.top * 0.6;
+        };
+        return PANELS.map(id => document.getElementById(id)).filter(Boolean).sort((a, b) => order(a) - order(b));
+    }
+
+    // パネルを左上から順に開く（reveal(el) で表示できる状態にしてから開くアニメーション）
+    function panelsIn({ delay = 0, step = 40, reveal = () => {} } = {}) {
+        const panels = panelsInOrder();
+        panels.forEach((el, i) => setTimeout(() => {
+            reveal(el);
+            Modal.animate(el, 'anim-open');
+        }, delay + i * step));
+        return wait(delay + panels.length * step + 450);
+    }
+
+    // パネルを右下から順に閉じる（閉じ終わったら hide(el) で隠す）
+    function panelsOut({ step = 35, hide = () => {} } = {}) {
+        const panels = panelsInOrder().reverse();
+        return Promise.all(panels.map((el, i) => wait(i * step)
+            .then(() => Modal.animate(el, 'anim-close'))
+            .then(() => hide(el))));
+    }
 
     // el が起動演出で表示されるまで待つ。表示されたら extra ms 後に解決（演出中でなければすぐ）
     function whenShown(el, extra = 0) {
@@ -41,7 +75,7 @@ const Boot = (() => {
         });
     }
 
-    return { whenShown, popIn };
+    return { whenShown, popIn, panelsIn, panelsOut };
 })();
 
 // =====================================
@@ -52,10 +86,6 @@ const Boot = (() => {
 (() => {
     const BOOT_KEY = 'boot-day';
     const DAY_START_HOUR = 6; // この時刻より前は前の日の続きとみなす
-    const PANELS = [
-        'clockbox', 'battery-box', 'theme-box', 'speed-box', 'searchbox', 'shortcut-box',
-        'timetable-box', 'weather-box', 'eew-box', 'setup-ui', 'calc-box', 'sys-box', 'dl-box',
-    ];
     // short: 毎回 / long: その日はじめて
     const MODES = {
         short: { delay: 40, step: 40 },
@@ -80,7 +110,11 @@ const Boot = (() => {
 
     document.documentElement.classList.add('booting');
 
-    // ---------- 長い演出：真ん中に線が広がり、文字がタイプされていく ----------
+    // ---------- 長い演出 ----------
+    // 1. 四隅に枠が現れ、真ん中に線が広がってタイトルが下から浮かび上がる
+    // 2. 日付とあいさつがタイプされ、左下に起動ログが流れる
+    // 3. 「PRESS ANY KEY」が点滅し、背景の映像が見えるくらいまで暗幕が薄くなる
+    // 4. キーかクリックで、線が画面いっぱいに伸びて光り、パネルが立ち上がる
     // コンソールっぽく英語で
     function greeting(hour) {
         if (hour >= 5 && hour < 11) return '> Good morning.';
@@ -103,6 +137,23 @@ const Boot = (() => {
 
     const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
 
+    // 左下に流す起動ログ（画面サイズや時刻など、今の状態を少し混ぜる）
+    function bootLog() {
+        const zoom = typeof PageZoom !== 'undefined' ? PageZoom.value : 1;
+        const theme = document.getElementById('color-picker')?.value || '#00eaff';
+        return [
+            `[ OK ] Display ${window.innerWidth}x${window.innerHeight} @ ${zoom.toFixed(2)}x`,
+            `[ OK ] Clock synchronized  ${now.toLocaleTimeString('ja-JP')}`,
+            `[ OK ] Theme color  ${theme}`,
+            '[ OK ] Timetable loaded',
+            '[ OK ] Weather service',
+            '[ OK ] Quake monitor (JMA / Wolfx)',
+            '[ OK ] System monitor',
+            `[ OK ] Network  ${navigator.onLine ? 'online' : 'offline'}`,
+            '> All systems ready.',
+        ];
+    }
+
     async function showSplash() {
         const version = (typeof chrome !== 'undefined' && chrome.runtime?.getManifest?.().version) || '';
         const week = ['日', '月', '火', '水', '木', '金', '土'][now.getDay()];
@@ -110,16 +161,40 @@ const Boot = (() => {
 
         const splash = document.createElement('div');
         splash.id = 'boot-splash';
-        splash.innerHTML = '<div class="boot-title"></div><div class="boot-line"></div><div class="boot-sub"></div><div class="boot-greet"></div>';
+        splash.innerHTML = `
+            <div class="boot-corner tl"></div><div class="boot-corner tr"></div>
+            <div class="boot-corner bl"></div><div class="boot-corner br"></div>
+            <div class="boot-title"></div><div class="boot-line"></div>
+            <div class="boot-sub"></div><div class="boot-greet"></div>
+            <div class="boot-press">PRESS ANY KEY</div>
+            <div class="boot-log"></div>`;
         document.body.appendChild(splash);
+        // 起動演出の間は背景の暗さを 0.5 に固定（キーを押したら設定の暗さへ戻す。bg.js）
+        if (typeof BgDim !== 'undefined') BgDim.hold(0.5);
 
-        // クリックかキーで飛ばせる
-        let skipped = false;
-        const skip = () => { skipped = true; };
-        splash.addEventListener('click', skip);
-        window.addEventListener('keydown', skip, { once: true });
+        // キーかクリックで先へ進む（演出の途中なら飛ばす）
+        let pressed = false;
+        let onPress;
+        const press = new Promise(resolve => {
+            onPress = e => {
+                if (e.type === 'keydown') e.preventDefault();
+                pressed = true;
+                resolve();
+            };
+        });
+        splash.addEventListener('click', onPress);
+        window.addEventListener('keydown', onPress);
 
-        const steps = async () => {
+        // 起動ログを1行ずつ流す
+        const logEl = splash.querySelector('.boot-log');
+        bootLog().forEach((line, i) => setTimeout(() => {
+            if (pressed) return;
+            const row = document.createElement('div');
+            row.textContent = line;
+            logEl.appendChild(row);
+        }, 400 + i * 160));
+
+        const intro = async () => {
             await wait(250); // 線が伸びきるのを待つ
             // タイトルだけは全部の文字を同時に、下からふわっと出す
             const title = splash.querySelector('.boot-title');
@@ -127,38 +202,33 @@ const Boot = (() => {
             title.classList.add('rise');
             await wait(450);
             await typeText(splash.querySelector('.boot-sub'), date, 22);
-            await typeText(splash.querySelector('.boot-greet'), greeting(now.getHours()), 60);
-            await wait(650);
+            // 季節のイベントの日はイベントのあいさつ（events.js）
+            const special = typeof Events !== 'undefined' ? Events.greeting() : null;
+            await typeText(splash.querySelector('.boot-greet'), special || greeting(now.getHours()), 60);
+            await wait(400);
         };
-        await Promise.race([steps(), new Promise(resolve => {
-            const check = setInterval(() => { if (skipped) { clearInterval(check); resolve(); } }, 50);
-        })]);
+        await Promise.race([intro(), press]);
 
-        window.removeEventListener('keydown', skip);
+        if (!pressed) {
+            // キーが押されるまで、暗幕を薄くして背景を見せながら待つ
+            splash.classList.add('idle');
+            await press;
+        }
+        window.removeEventListener('keydown', onPress);
+        if (typeof BgDim !== 'undefined') BgDim.release();
+
+        // 線が画面いっぱいに伸びて光り、全体が消える
         splash.classList.add('leaving');
-        await wait(350);
+        await wait(650);
         splash.remove();
     }
 
     // ---------- パネルを順番に立ち上げる ----------
-    function bootPanels({ delay, step }) {
-        const panels = PANELS.map(id => document.getElementById(id)).filter(Boolean);
-        // 画面の左上から右下へ順番に（横の位置を優先し、縦は少しだけ効かせる）
-        const order = el => {
-            const r = el.getBoundingClientRect();
-            return r.left + r.top * 0.6;
-        };
-        panels.sort((a, b) => order(a) - order(b));
-
-        panels.forEach((el, i) => setTimeout(() => {
-            el.classList.add('boot-shown');
-            Modal.animate(el, 'anim-open');
-        }, delay + i * step));
-
-        setTimeout(() => {
-            document.documentElement.classList.remove('booting');
-            panels.forEach(el => el.classList.remove('boot-shown'));
-        }, delay + panels.length * step + 700);
+    async function bootPanels({ delay, step }) {
+        await Boot.panelsIn({ delay, step, reveal: el => el.classList.add('boot-shown') });
+        await new Promise(resolve => setTimeout(resolve, 250));
+        document.documentElement.classList.remove('booting');
+        document.querySelectorAll('.boot-shown').forEach(el => el.classList.remove('boot-shown'));
     }
 
     window.addEventListener('DOMContentLoaded', async () => {

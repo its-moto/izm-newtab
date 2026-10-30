@@ -13,10 +13,12 @@
 <body>
     <canvas id="background"></canvas>
     <canvas id="weather-fx"></canvas>
+    <canvas id="event-fx"></canvas>
 
     <input type="text" id="searchbox" placeholder="Google 検索...">
 
     <div id="clockbox">
+        <div id="event-badge" hidden></div>
         <div id="clock">00:00:00</div>
         <div id="date">2026/01/01 (木)</div>
     </div>
@@ -195,6 +197,12 @@
 
     <video id="bg-video" loop muted playsinline style="display:none;"></video>
     <div id="setup-ui">
+        <button id="view-mode-btn" title="背景を見る（パネルを隠す）">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">
+                <path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z" />
+                <circle cx="12" cy="12" r="3" fill="currentColor" />
+            </svg>
+        </button>
         <div id="bg-volume" hidden>
             <button id="bg-mute-btn" title="ミュート切替（Ctrl+Alt+Shift+M）">
                 <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">
@@ -267,6 +275,8 @@
     <script src="assets/script/weather.js"></script>
     <script src="assets/script/warning.js"></script>
     <script src="assets/script/weatherfx.js"></script>
+    <script src="assets/script/events.js"></script>
+    <script src="assets/script/viewmode.js"></script>
     <script src="assets/script/speedchecker.js"></script>
     <script src="assets/script/netinfo.js"></script>
     <script src="assets/script/calculator.js"></script>

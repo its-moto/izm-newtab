@@ -13,7 +13,7 @@ const PageZoom = (() => {
         zoom = Math.min(MAX, Math.max(MIN, window.innerWidth / BASE_WIDTH));
         document.body.style.zoom = zoom;
         // 背景と天気の演出は画面いっぱいに出したいので、拡大・縮小を打ち消す（実際の画面サイズで合わせる）
-        ['background', 'weather-fx'].forEach(id => {
+        ['background', 'weather-fx', 'event-fx'].forEach(id => {
             const el = document.getElementById(id);
             if (el) el.style.zoom = 1 / zoom;
         });

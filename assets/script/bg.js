@@ -135,8 +135,10 @@ function draw() {
         ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
 
-    // 4. 全体のオーバーレイ（背景の不透明度スライダー）
-    ctx.fillStyle = `rgba(0, 0, 0, ${sliderValue})`;
+    // 4. 全体のオーバーレイ（背景の不透明度スライダー。起動演出の間は BgDim で上書き）
+    const dimTarget = dimOverride ?? sliderValue;
+    dimShown = dimShown === null ? dimTarget : dimShown + (dimTarget - dimShown) * 0.05; // 約1秒かけて近づける
+    ctx.fillStyle = `rgba(0, 0, 0, ${dimShown})`;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     requestAnimationFrame(draw);
@@ -144,6 +146,20 @@ function draw() {
 
 // 値を保持するための変数
 let sliderValue = 0.5;
+let dimOverride = null; // 起動演出の間だけ使う暗さ
+let dimShown = null;    // 実際に描いている暗さ（なめらかに変える）
+
+// 起動演出（boot.js）から背景の暗さを一時的に固定する
+const BgDim = {
+    hold(value) {
+        dimOverride = value;
+        dimShown = value;
+    },
+    // 設定された暗さへ、なめらかに戻す
+    release() {
+        dimOverride = null;
+    },
+};
 
 const slider = document.getElementById('bg-opacity');
 const display = document.getElementById('valDisplay');

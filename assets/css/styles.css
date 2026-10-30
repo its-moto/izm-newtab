@@ -844,7 +844,8 @@ td {
 
 /* 起動演出（boot.js）：立ち上がるまでパネルを隠しておく */
 html.booting :is(#clockbox, #battery-box, #theme-box, #speed-box, #searchbox, #shortcut-box,
-    #timetable-box, #weather-box, #eew-box, #setup-ui, #calc-box, #sys-box, #dl-box):not(.boot-shown) {
+    #timetable-box, #weather-box, #eew-box, #setup-ui, #calc-box, #sys-box, #dl-box,
+    #version-info, #update-status):not(.boot-shown) {
     visibility: hidden;
 }
 
@@ -862,11 +863,140 @@ html.booting :is(#clockbox, #battery-box, #theme-box, #speed-box, #searchbox, #s
     color: var(--main-color);
     text-shadow: 0 0 8px var(--main-color);
     cursor: pointer;
+    overflow: hidden;
+    transition: background-color 1.4s ease;
     animation: backdrop-in 0.2s ease-out;
 }
 
+/* キー待ちの間は暗幕を消して、背景の映像を見せる（暗さは bg.js で 0.5 に固定している） */
+#boot-splash.idle {
+    background-color: rgba(0, 0, 0, 0);
+}
+
+/* 走査線と、ゆっくり下へ流れる光の帯 */
+#boot-splash::before,
+#boot-splash::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+#boot-splash::before {
+    background: repeating-linear-gradient(to bottom, rgba(255, 255, 255, 0.035) 0 1px, transparent 1px 3px);
+}
+
+#boot-splash::after {
+    height: 30%;
+    background: linear-gradient(to bottom, transparent, color-mix(in srgb, var(--main-color) 7%, transparent), transparent);
+    animation: boot-scan 4.5s linear infinite;
+}
+
+@keyframes boot-scan {
+    from {
+        transform: translateY(-100%);
+    }
+    to {
+        transform: translateY(400%);
+    }
+}
+
+/* 四隅のカギ括弧の枠 */
+.boot-corner {
+    position: absolute;
+    width: 34px;
+    height: 34px;
+    border: 0 solid var(--main-color);
+    filter: drop-shadow(0 0 4px var(--main-color));
+    animation: boot-corner 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.boot-corner.tl { top: 28px; left: 28px; border-top-width: 3px; border-left-width: 3px; }
+.boot-corner.tr { top: 28px; right: 28px; border-top-width: 3px; border-right-width: 3px; }
+.boot-corner.bl { bottom: 28px; left: 28px; border-bottom-width: 3px; border-left-width: 3px; }
+.boot-corner.br { bottom: 28px; right: 28px; border-bottom-width: 3px; border-right-width: 3px; }
+
+@keyframes boot-corner {
+    from {
+        opacity: 0;
+        transform: scale(2.2);
+    }
+}
+
+/* キー待ちの点滅 */
+.boot-press {
+    margin-top: 34px;
+    font-size: 16px;
+    letter-spacing: 0.45em;
+    opacity: 0;
+}
+
+#boot-splash.idle .boot-press {
+    animation: boot-press 1.6s ease-in-out infinite;
+}
+
+@keyframes boot-press {
+    0%, 100% {
+        opacity: 0.25;
+    }
+    50% {
+        opacity: 1;
+    }
+}
+
+/* 左下の起動ログ */
+.boot-log {
+    position: absolute;
+    left: 76px;
+    bottom: 70px;
+    font-size: 12px;
+    line-height: 1.6;
+    text-align: left;
+    opacity: 0.75;
+    text-shadow: none;
+}
+
+.boot-log > div {
+    animation: boot-log 0.25s ease-out both;
+}
+
+@keyframes boot-log {
+    from {
+        opacity: 0;
+        transform: translateX(-8px);
+    }
+}
+
+/* 退場：線が画面いっぱいに伸びて光り、文字が先に消えて、最後に全体が消える */
 #boot-splash.leaving {
-    animation: fadeOut 0.35s ease-in both;
+    animation: fadeOut 0.4s ease-in 0.25s both;
+}
+
+#boot-splash.leaving .boot-line {
+    animation: boot-line-out 0.4s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+#boot-splash.leaving > :not(.boot-line):not(.boot-corner) {
+    animation: fadeOut 0.2s ease-in both;
+}
+
+#boot-splash.leaving .boot-corner {
+    animation: boot-corner-out 0.45s ease-in both;
+}
+
+@keyframes boot-line-out {
+    to {
+        transform: scaleX(3);
+        filter: brightness(3);
+        box-shadow: 0 0 30px var(--main-color), 0 0 6px #fff;
+    }
+}
+
+@keyframes boot-corner-out {
+    to {
+        opacity: 0;
+        transform: scale(0.6);
+    }
 }
 
 .boot-title {
@@ -916,7 +1046,7 @@ html.booting :is(#clockbox, #battery-box, #theme-box, #speed-box, #searchbox, #s
 }
 
 /* 文字を打っている位置のカーソル */
-.boot-sub:not(:empty)::after,
+.boot-sub:not(:empty):has(+ .boot-greet:empty)::after,
 .boot-greet:not(:empty)::after {
     content: '_';
     margin-left: 2px;
@@ -953,6 +1083,138 @@ html.booting :is(#clockbox, #battery-box, #theme-box, #speed-box, #searchbox, #s
 @media (prefers-reduced-motion: reduce) {
     .pop-in {
         animation: none;
+    }
+}
+
+/* 背景鑑賞モード（viewmode.js） */
+#view-mode-btn {
+    display: flex;
+    align-items: center;
+    padding: 0 12px 0 0;
+    border: none;
+    border-right: 1px solid var(--main-color);
+    background: transparent;
+    color: var(--main-color);
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+#view-mode-btn:hover {
+    filter: drop-shadow(0 0 4px var(--main-color));
+}
+
+/* 閉じたパネルと、ページ下の小さな表示を隠す */
+.view-hidden,
+html.viewing :is(#version-info, #update-status) {
+    visibility: hidden;
+}
+
+#view-mode {
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    color: var(--main-color);
+    text-shadow: 0 0 6px var(--main-color);
+    cursor: pointer;
+    animation: backdrop-in 0.4s ease-out;
+}
+
+#view-mode.leaving {
+    animation: fadeOut 0.35s ease-in both;
+}
+
+.view-hint {
+    position: absolute;
+    top: 36px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 13px;
+    letter-spacing: 0.3em;
+    white-space: nowrap;
+    animation: view-hint 4s ease-in-out both;
+}
+
+/* 最初だけ表示して、あとは消えていく */
+@keyframes view-hint {
+    0% { opacity: 0; }
+    15%, 60% { opacity: 0.8; }
+    100% { opacity: 0; }
+}
+
+.view-log {
+    position: absolute;
+    left: 76px;
+    bottom: 70px;
+    width: 640px;
+    font-size: 13px;
+    line-height: 1.65;
+    white-space: pre;
+    /* 古い行ほど上に向かって薄くなる */
+    -webkit-mask: linear-gradient(to bottom, transparent, #000 45%);
+    mask: linear-gradient(to bottom, transparent, #000 45%);
+}
+
+.view-log > div {
+    animation: boot-log 0.25s ease-out both;
+}
+
+.view-log-time {
+    opacity: 0.55;
+    margin-right: 10px;
+}
+
+.view-log-tag {
+    margin-right: 10px;
+    font-weight: bold;
+}
+
+.view-time {
+    position: absolute;
+    right: 76px;
+    bottom: 64px;
+    text-align: right;
+}
+
+.view-clock {
+    font-size: 64px;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.05em;
+}
+
+.view-date {
+    font-size: 18px;
+    opacity: 0.75;
+}
+
+/* 季節のイベントの飾り（events.js）。天気の演出と同じく、背景の上・パネルの下に重ねる */
+#event-fx {
+    position: fixed;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+}
+
+/* 時計の右上に出すイベントのアイコン */
+#event-badge {
+    position: absolute;
+    top: -14px;
+    right: -14px;
+    font-size: 28px;
+    line-height: 1;
+    filter: drop-shadow(0 0 6px var(--main-color));
+    animation: event-badge 2.4s ease-in-out infinite;
+}
+
+#event-badge[hidden] {
+    display: none;
+}
+
+@keyframes event-badge {
+    0%, 100% {
+        transform: rotate(-8deg);
+    }
+    50% {
+        transform: rotate(8deg) translateY(-3px);
     }
 }
 
